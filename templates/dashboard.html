@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MAHIR ID GEN — Dashboard</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    min-height: 100vh;
+    background: radial-gradient(circle at 15% 15%, #1e3a8a 0%, #0a0e1a 55%, #05070f 100%);
+    color: #e2e8f0;
+    padding: 24px;
+  }
+  .wrap {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  .top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .brand-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #22d3ee, #a855f7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    box-shadow: 0 10px 25px rgba(34, 211, 238, 0.3);
+  }
+  .brand h1 {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    background: linear-gradient(90deg, #22d3ee, #a855f7);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .brand .sub {
+    font-size: 11px;
+    color: #64748b;
+    letter-spacing: 0.5px;
+  }
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+  }
+  .badge {
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+  }
+  .badge.user  { background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); }
+  .badge.owner { background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.4); }
+  .logout {
+    padding: 8px 16px;
+    background: rgba(239, 68, 68, 0.15);
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    color: #fca5a5;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+    transition: all 0.2s;
+  }
+  .logout:hover { background: rgba(239, 68, 68, 0.28); }
+
+  .panel {
+    background: rgba(15, 23, 42, 0.78);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(99, 179, 237, 0.15);
+    border-radius: 18px;
+    padding: 28px;
+    margin-bottom: 22px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+  }
+  .panel h2 {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #94a3b8;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .panel h2::before {
+    content: '';
+    width: 4px;
+    height: 16px;
+    border-radius: 2px;
+    background: linear-gradient(180deg, #22d3ee, #a855f7);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .field { margin-bottom: 14px; }
+  label {
+    display: block;
+    font-size: 11px;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 7px;
+    font-weight: 700;
+  }
+  input, textarea {
+    width: 100%;
+    padding: 12px 14px;
+    background: rgba(10, 15, 26, 0.9);
+    border: 1px solid rgba(99, 179, 237, 0.18);
+    border-radius: 10px;
+    color: #e2e8f0;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+    font-family: inherit;
+    resize: vertical;
+  }
+  input:focus, textarea:focus {
+    border-color: #22d3ee;
+    box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.15);
+  }
+  input:disabled, textarea:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    background: rgba(10, 15, 26, 0.5);
+  }
+  .locked-hint {
+    font-size: 11px;
+    color: #f59e0b;
+    margin-top: 6px;
+    font-weight: 600;
+  }
+
+  .buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 20px;
+  }
+  .btn {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: white;
+  }
+  .btn-start {
+    background: linear-gradient(135deg, #10b981, #059669);
+  }
+  .btn-start:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(16, 185, 129, 0.4);
+  }
+  .btn-stop {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+  }
+  .btn-stop:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(239, 68, 68, 0.4);
+  }
+  .btn-download {
+    background: linear-gradient(135deg, #3b82f6, #2563eb);
+    display: none;
+    margin-top: 16px;
+    width: 100%;
+  }
+  .btn-download:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(59, 130, 246, 0.4);
+  }
+  .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .stat {
+    background: rgba(10, 15, 26, 0.85);
+    border: 1px solid rgba(99, 179, 237, 0.15);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 50% 0%, rgba(34, 211, 238, 0.08), transparent 70%);
+    pointer-events: none;
+  }
+  .stat-label {
+    font-size: 10px;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 1.4px;
+    margin-bottom: 8px;
+    font-weight: 700;
+  }
+  .stat-value {
+    font-size: 26px;
+    font-weight: 900;
+  }
+  .stat-value.green { color: #10b981; text-shadow: 0 0 20px rgba(16, 185, 129, 0.4); }
+  .stat-value.red   { color: #ef4444; text-shadow: 0 0 20px rgba(239, 68, 68, 0.4); }
+  .stat-value.cyan  { color: #22d3ee; text-shadow: 0 0 20px rgba(34, 211, 238, 0.4); }
+
+  .log {
+    margin-top: 4px;
+    background: #05080f;
+    border: 1px solid rgba(99, 179, 237, 0.12);
+    border-radius: 12px;
+    padding: 16px;
+    max-height: 260px;
+    overflow-y: auto;
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-size: 12px;
+    line-height: 1.7;
+  }
+  .log-line { color: #94a3b8; word-break: break-all; }
+  .log-line.success { color: #10b981; }
+  .log-line.error   { color: #ef4444; }
+  .log-line.warning { color: #f59e0b; }
+
+  .status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    margin-left: 10px;
+  }
+  .status-idle    { background: #334155; color: #cbd5e1; }
+  .status-running { background: #065f46; color: #6ee7b7; animation: pulse 1.6s infinite; }
+  .status-stopped { background: #7f1d1d; color: #fca5a5; }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.55; }
+  }
+
+  .file-info {
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 10px;
+    padding: 10px 14px;
+    background: rgba(10, 15, 26, 0.7);
+    border-radius: 8px;
+    border-left: 3px solid #22d3ee;
+    font-family: monospace;
+  }
+
+  @media (max-width: 640px) {
+    .grid { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="top">
+    <div class="brand">
+      <div class="brand-icon">⚡</div>
+      <div>
+        <h1>MAHIR ID GENERATOR</h1>
+        <div class="sub">Garena Free Fire Auto Creator</div>
+      </div>
+    </div>
+    <div class="user-info">
+      <span id="whoami">—</span>
+      <span id="roleBadge" class="badge">—</span>
+      <button class="logout" onclick="doLogout()">LOGOUT</button>
+    </div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="panel">
+    <h2>Generator Control <span id="statusBadge" class="status-badge status-idle">IDLE</span></h2>
+
+    <div class="grid">
+      <div class="field">
+        <label>Account Name Prefix</label>
+        <input type="text" id="nickname" placeholder="MAHIR (locked for user)" />
+        <div class="locked-hint" id="nickLockHint" style="display:none;">
+          🔒 Only OWNER can customize the account name
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Workers (Parallel)</label>
+        <input type="number" id="workers" value="20" min="1" max="100" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Account Bio</label>
+      <textarea id="bio" rows="2" placeholder="[C][B]WEB : MAHIR.XO.JE [FFD700]TG : MAHIR0208"></textarea>
+      <div class="locked-hint" id="bioLockHint" style="display:none;">
+        🔒 Only OWNER can customize the bio
+      </div>
+    </div>
+
+    <div class="buttons">
+      <button id="btnStart" class="btn btn-start" onclick="startGen()">▶ START</button>
+      <button id="btnStop"  class="btn btn-stop"  onclick="stopGen()" disabled>■ STOP</button>
+    </div>
+
+    <button id="btnDownload" class="btn btn-download" onclick="downloadJson()">
+      ⬇ DOWNLOAD SESSION JSON
+    </button>
+
+    <div class="file-info" id="fileInfo">No session file yet</div>
+  </div>
+
+  <!-- STATS -->
+  <div class="panel">
+    <h2>Live Statistics</h2>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">Success</div>
+        <div class="stat-value green" id="statSuccess">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Failed</div>
+        <div class="stat-value red" id="statFail">0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Total</div>
+        <div class="stat-value cyan" id="statTotal">0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOG -->
+  <div class="panel">
+    <h2>Activity Log</h2>
+    <div class="log" id="logBox">
+      <div class="log-line">Waiting for start...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let pollTimer = null;
+  let sessionFile = "";
+
+  async function loadMe() {
+    const res = await fetch('/api/me');
+    const data = await res.json();
+    if (!data.ok) { window.location.href = '/'; return; }
+
+    document.getElementById('whoami').textContent = data.username;
+    const rb = document.getElementById('roleBadge');
+    rb.textContent = data.role.toUpperCase();
+    rb.className = 'badge ' + data.role;
+
+    if (data.role === 'user') {
+      const nickInput = document.getElementById('nickname');
+      const bioInput  = document.getElementById('bio');
+      nickInput.value = 'MAHIR';
+      nickInput.disabled = true;
+      bioInput.value = '[C][B]WEB : MAHIR.XO.JE [FFD700]TG : MAHIR0208';
+      bioInput.disabled = true;
+      document.getElementById('nickLockHint').style.display = 'block';
+      document.getElementById('bioLockHint').style.display = 'block';
+    } else {
+      document.getElementById('nickname').placeholder = 'MAHIR (leave blank for default)';
+      document.getElementById('bio').placeholder = 'Custom bio...';
+    }
+  }
+
+  async function startGen() {
+    const nickname = document.getElementById('nickname').value.trim();
+    const workers  = parseInt(document.getElementById('workers').value) || 20;
+    const bio      = document.getElementById('bio').value.trim();
+
+    document.getElementById('btnStart').disabled = true;
+    document.getElementById('btnStop').disabled  = false;
+    document.getElementById('btnDownload').style.display = 'none';
+    setStatus('running', 'RUNNING');
+
+    try {
+      const res = await fetch('/api/start', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nickname, workers, bio })
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        logLine('❌ ' + (data.error || 'Failed'), 'error');
+        document.getElementById('btnStart').disabled = false;
+        document.getElementById('btnStop').disabled  = true;
+        setStatus('idle', 'IDLE');
+      } else {
+        sessionFile = data.session_file || '';
+        document.getElementById('fileInfo').textContent = 'Session file: ' + sessionFile;
+      }
+    } catch (e) {
+      logLine('❌ ' + e, 'error');
+    }
+
+    if (pollTimer) clearInterval(pollTimer);
+    pollTimer = setInterval(pollStats, 1000);
+  }
+
+  async function stopGen() {
+    document.getElementById('btnStop').disabled = true;
+    try {
+      await fetch('/api/stop', { method: 'POST' });
+    } catch (e) {}
+    logLine('■ Stopped', 'warning');
+    setStatus('stopped', 'STOPPED');
+    document.getElementById('btnDownload').style.display = 'block';
+    if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+    pollStats();
+  }
+
+  async function pollStats() {
+    try {
+      const res = await fetch('/api/stats');
+      const data = await res.json();
+      document.getElementById('statSuccess').textContent = data.success;
+      document.getElementById('statFail').textContent    = data.fail;
+      document.getElementById('statTotal').textContent   = data.total;
+
+      const box = document.getElementById('logBox');
+      box.innerHTML = data.logs.map(l =>
+        `<div class="log-line ${l.level}">[${l.t}] ${escapeHtml(l.msg)}</div>`
+      ).join('');
+      box.scrollTop = box.scrollHeight;
+
+      if (!data.running && !document.getElementById('btnStop').disabled) {
+        document.getElementById('btnStart').disabled = false;
+        document.getElementById('btnStop').disabled  = true;
+        setStatus('stopped', 'STOPPED');
+        document.getElementById('btnDownload').style.display = 'block';
+        if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+      }
+    } catch (e) {}
+  }
+
+  function downloadJson() {
+    if (!sessionFile) return;
+    window.location.href = '/api/download?file=' + encodeURIComponent(sessionFile);
+  }
+
+  async function doLogout() {
+    await fetch('/api/logout', { method: 'POST' });
+    window.location.href = '/';
+  }
+
+  function setStatus(cls, text) {
+    const el = document.getElementById('statusBadge');
+    el.className = 'status-badge status-' + cls;
+    el.textContent = text;
+  }
+  function logLine(msg, level='info') {
+    const box = document.getElementById('logBox');
+    const div = document.createElement('div');
+    div.className = 'log-line ' + level;
+    div.textContent = msg;
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+  }
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+      '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+    }[c]));
+  }
+
+  loadMe();
+</script>
+</body>
+</html>

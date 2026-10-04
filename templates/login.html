@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>MAHIR ID GEN — Login</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at 20% 20%, #1e3a8a 0%, #0a0e1a 55%, #05070f 100%);
+    color: #e2e8f0;
+    padding: 20px;
+  }
+  .card {
+    width: 100%;
+    max-width: 440px;
+    padding: 40px 34px;
+    border-radius: 22px;
+    background: rgba(15, 23, 42, 0.78);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(99, 179, 237, 0.15);
+    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.6), inset 0 0 60px rgba(34, 211, 238, 0.03);
+    animation: fadein 0.6s ease;
+  }
+  @keyframes fadein {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .logo {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  .logo-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 14px;
+    border-radius: 18px;
+    background: linear-gradient(135deg, #22d3ee, #a855f7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    box-shadow: 0 12px 30px rgba(34, 211, 238, 0.35);
+  }
+  h1 {
+    font-size: 22px;
+    font-weight: 700;
+    text-align: center;
+    background: linear-gradient(90deg, #22d3ee, #a855f7, #f472b6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: 1px;
+  }
+  .sub {
+    text-align: center;
+    font-size: 12px;
+    color: #64748b;
+    margin-top: 6px;
+    letter-spacing: 0.4px;
+  }
+  .tabs {
+    display: flex;
+    background: rgba(10, 15, 26, 0.8);
+    border-radius: 12px;
+    padding: 5px;
+    margin: 26px 0 22px;
+  }
+  .tab {
+    flex: 1;
+    padding: 11px;
+    text-align: center;
+    cursor: pointer;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #94a3b8;
+    transition: all 0.25s;
+    letter-spacing: 0.6px;
+  }
+  .tab.active {
+    background: linear-gradient(135deg, #22d3ee, #3b82f6);
+    color: white;
+    box-shadow: 0 8px 20px rgba(34, 211, 238, 0.35);
+  }
+  .field { margin-bottom: 16px; }
+  label {
+    display: block;
+    font-size: 11px;
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 7px;
+    font-weight: 700;
+  }
+  input {
+    width: 100%;
+    padding: 13px 15px;
+    background: rgba(10, 15, 26, 0.9);
+    border: 1px solid rgba(99, 179, 237, 0.18);
+    border-radius: 10px;
+    color: #e2e8f0;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.2s;
+  }
+  input:focus {
+    border-color: #22d3ee;
+    box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.18);
+  }
+  .btn {
+    width: 100%;
+    padding: 14px;
+    margin-top: 12px;
+    border: none;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #22d3ee, #3b82f6);
+    color: white;
+    font-size: 15px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px rgba(34, 211, 238, 0.4);
+  }
+  .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+  .msg {
+    text-align: center;
+    font-size: 13px;
+    margin-top: 14px;
+    min-height: 20px;
+    font-weight: 600;
+  }
+  .msg.error { color: #ef4444; }
+  .msg.success { color: #10b981; }
+  .hint {
+    font-size: 11px;
+    color: #475569;
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">
+      <div class="logo-icon">⚡</div>
+      <h1>MAHIR ID GENERATOR</h1>
+      <div class="sub">Garena Free Fire Account Creator</div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" data-role="user" onclick="switchTab('user')">👤 USER</div>
+      <div class="tab"        data-role="owner" onclick="switchTab('owner')">👑 OWNER</div>
+    </div>
+
+    <div class="field">
+      <label>Username</label>
+      <input type="text" id="username" placeholder="Enter username" autocomplete="off" />
+    </div>
+
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="password" placeholder="Enter password" autocomplete="off" />
+    </div>
+
+    <button class="btn" id="loginBtn" onclick="doLogin()">LOGIN</button>
+    <div class="msg" id="msg"></div>
+
+    <div class="hint">
+      <b>User:</b> MAHIR fixed name, fixed bio<br>
+      <b>Owner:</b> custom name + custom bio
+    </div>
+  </div>
+
+<script>
+  let role = 'user';
+
+  function switchTab(r) {
+    role = r;
+    document.querySelectorAll('.tab').forEach(t => {
+      t.classList.toggle('active', t.dataset.role === r);
+    });
+    document.getElementById('msg').textContent = '';
+  }
+
+  async function doLogin() {
+    const u = document.getElementById('username').value.trim();
+    const p = document.getElementById('password').value.trim();
+    const msg = document.getElementById('msg');
+    const btn = document.getElementById('loginBtn');
+
+    if (!u || !p) {
+      msg.className = 'msg error';
+      msg.textContent = '❌ Username and password required';
+      return;
+    }
+
+    btn.disabled = true;
+    msg.className = 'msg';
+    msg.textContent = '⏳ Logging in...';
+
+    try {
+      const res = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: u, password: p, role })
+      });
+      const data = await res.json();
+      if (data.ok) {
+        msg.className = 'msg success';
+        msg.textContent = '✅ Login successful, redirecting...';
+        setTimeout(() => window.location.href = '/dashboard', 500);
+      } else {
+        msg.className = 'msg error';
+        msg.textContent = '❌ ' + (data.error || 'Login failed');
+        btn.disabled = false;
+      }
+    } catch (e) {
+      msg.className = 'msg error';
+      msg.textContent = '❌ ' + e;
+      btn.disabled = false;
+    }
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') doLogin();
+  });
+</script>
+</body>
+</html>
