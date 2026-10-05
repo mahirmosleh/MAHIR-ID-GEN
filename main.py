@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 # ======================================================================
-#   MAHIR ID GENERATOR — Async + Login + Role-based Access
+#   MAHIR ID GENERATOR — BD Only + Persistent Sessions + Owner Panel
 # ======================================================================
 
 import asyncio
@@ -16,6 +16,7 @@ import sys
 import uuid
 import ssl
 import string
+import glob
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
 from datetime import datetime
@@ -23,7 +24,6 @@ from colorama import init, Fore, Style
 from aiohttp import web
 
 init(autoreset=True)
-
 
 # ======================================================================
 # CONSTANTS
@@ -37,18 +37,24 @@ RELEASE_VERSION = "OB55"
 WEB_HOST = "0.0.0.0"
 WEB_PORT = 8080
 
-# ---- Login credentials (change here) ----
-USER_CREDENTIALS  = {"username": "MAHIR-ID-GEN",  "password": "MAHIR.XO.JE"}
+# ---- Login credentials ----
+USER_CREDENTIALS  = {"username": "MAHIR-ID-GEN",    "password": "MAHIR.XO.JE"}
 OWNER_CREDENTIALS = {"username": "OWNER-MAHIR-BRO", "password": "MAHIR-JOD"}
 
 # ---- Defaults ----
 DEFAULT_NICKNAME = "MAHIR"
 DEFAULT_BIO = "[C][B]WEB : MAHIR.XO.JE [FFD700]TG : MAHIR0208"
 
+# ---- BD-only server ----
+BD_SERVER_URL = "https://loginbp.ggpolarbear.com"
+
+# ---- Persistence dir ----
+DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "data")
+os.makedirs(DATA_DIR, exist_ok=True)
+
 GGRE_BLOB = bytes.fromhex(
     "47475245010101006d020000b260ee08e1f86b4c57f9c70f86bba26ed5d1436bcf52e142db3249d905eded757764991ca31a8373cdd26eab91b80f3f1f6f262f4f10b895d7b6937ddba30a27197453890e9da49373f736c679b8254e2f8e1623e91084a5fdd5374fe478ff99e010834553fddeb0bec4018d142e49df9bb236675b67e852f92a43586f7a7d4d0d7a197a1d4da32714dab4d069ad53214e2c33b3877420a12459738c4c619cbd815fa878bbd104776bb3e1ac7818d5397b04a666ac57f682763ff2df31bc2f846ddc7904f3dce1bda0c4b01f9698e9166f98c84f92640abe3f6317834a42e5c12573b46842c1a6ea8fe6ca9c006dca48a2087e1f983dfb5692771e4a0b15b337ad669b1d08b40862b176bace5331b49a767375b1a8469012aa70a67b55fe71b72478201d0b3ac7269c064c960361e92ee7ba8a42cc6b582bf9b965fb388fa9172ad44c4b073ac23c02080a6bcd106b691ffdf4c7cf71e42f2063fcf196e9bddc5e85be1fe5048eb1b31b460efbb46d76195eef9904c4cba326f2e17ff51fec17dd965aa06dadd4ab07d6966e4a7c38e8afd66dfde56c872bb87516a8f7313c797e4d80e5ad4a5f7afad95c1e0449254adae052e71a3fb98399f93ab30848e0d23252dd45e6fd41bc5fa7303dfb846a8fd713a0032a0b0ae96dfba1bbe41d20abd8099e2cb7fccc329d25bd153029139ef05d090a5093ea557693c0a8d491395b8a23ca844b3887dd5dfc29ac06f4b9be87883a793211b973465e2644c4f5de02b8ab01571401203fc2740423826858cc6da0194c195d27aac4ec4b9d23d506c1501d06440aca3fc180926d75d4a004d3dff21eb4ea1e8c86e6c9627248eff953e1d192d5c8efc006a7e512388ef2ebdb72ee3ad42d719f28e8f994e12ebf4c79f2ffe3abd7408ccd2236a7b89b2606247a732c10c4"
 )
-
 
 # ======================================================================
 # GLOBAL STATE
@@ -59,21 +65,8 @@ HTTP_CONCURRENCY = 30
 CONNECTOR_LIMIT          = 30
 CONNECTOR_LIMIT_PER_HOST = 30
 
-DYNAMIC_SERVER_URL = "https://loginbp.ppmainecoonghj.com/"
-CURRENT_OB = RELEASE_VERSION
-
-Hr = {
-    "Accept": "*/*",
-    "Content-Type": "application/x-www-form-urlencoded",
-    "ReleaseVersion": CURRENT_OB,
-    "User-Agent": "UnityPlayer/2018.4.12f1 (UnityWebRequest/1.0, libcurl/8.5.0-DEV)",
-    "X-GA": "v1 1",
-    "X-GA-SV": str(int(time.time())),
-    "X-Unity-Version": "2018.4.12f1",
-}
-
-# ---- Session state ----
-sessions = {}                       # token -> {"username", "role"}
+# ---- Session store (in-memory for login cookies) ----
+sessions = {}
 SESSION_COOKIE = "mahir_sid"
 
 # ---- Generation state ----
@@ -88,14 +81,17 @@ GENERATION_RUNNING = False
 STOP_EVENT         = None
 WORKER_TASKS       = []
 
-# ---- Per-session values (set on /api/start) ----
-SESSION_NICKNAME = DEFAULT_NICKNAME
-SESSION_BIO      = DEFAULT_BIO
-SESSION_FILE     = ""               # MAHIR_ID_GEN_XXXXXX.json
+# ---- Per-run values ----
+CURRENT_RUN = {
+    "owner": None,          # username of who started it
+    "role": None,           # "user" or "owner"
+    "nickname": DEFAULT_NICKNAME,
+    "bio": DEFAULT_BIO,
+    "file": None,           # path to JSON
+}
 
-# ---- Logs ----
 log_buffer = []
-LOG_MAX = 200
+LOG_MAX = 300
 
 
 def log_msg(msg, level="info"):
@@ -109,10 +105,9 @@ def log_msg(msg, level="info"):
 
 
 # ======================================================================
-# LOGIN / SESSION HELPERS
+# LOGIN / SESSION
 # ======================================================================
 def check_credentials(username, password, role):
-    """Return True if username/password matches the credentials for that role."""
     if role == "user":
         return (username == USER_CREDENTIALS["username"]
                 and password == USER_CREDENTIALS["password"])
@@ -135,65 +130,70 @@ def make_session(username, role):
     return sid
 
 
-def new_session_filename():
-    rand = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
-    return f"MAHIR_ID_GEN_{rand}.json"
-
-
 # ======================================================================
-# IP ROTATOR
+# BD-ONLY IP ROTATOR
 # ======================================================================
 class IPRotator:
-    REGION_IP_CIDRS = {
-        "BD": ["27.147.128.0/17", "37.111.192.0/19", "49.0.32.0/20",
-               "59.152.96.0/20", "114.130.0.0/17", "115.127.0.0/17",
-               "119.30.32.0/20", "123.49.0.0/18", "103.220.220.0/22",
-               "103.108.140.0/22", "103.242.20.0/22"],
-    }
-    _cache = {}
+    # Only Bangladeshi IP ranges
+    BD_CIDRS = [
+        "27.147.128.0/17", "37.111.192.0/19", "49.0.32.0/20",
+        "59.152.96.0/20", "114.130.0.0/17", "115.127.0.0/17",
+        "119.30.32.0/20", "123.49.0.0/18", "103.220.220.0/22",
+        "103.108.140.0/22", "103.242.20.0/22", "103.4.90.0/23",
+        "103.7.220.0/22", "103.12.180.0/22", "103.48.16.0/22",
+        "103.75.36.0/22", "103.87.176.0/22", "103.94.44.0/22",
+        "103.100.88.0/22", "103.112.56.0/22", "103.130.104.0/22",
+        "103.146.176.0/22", "103.150.188.0/22", "103.216.56.0/22",
+        "103.220.204.0/22", "103.230.108.0/22", "103.242.20.0/22",
+        "103.244.176.0/22", "103.248.28.0/22", "202.4.96.0/19",
+        "202.22.192.0/19", "202.40.176.0/20", "202.53.160.0/19",
+        "202.72.240.0/20", "202.83.224.0/19", "202.134.8.0/21",
+        "203.76.96.0/19", "203.81.64.0/19", "203.112.192.0/18",
+        "203.192.224.0/19",
+    ]
+    _cache = []
 
     @classmethod
-    def get_random_ip(cls, region="BD"):
-        region = region.upper()
-        if region not in cls._cache:
-            cidrs = cls.REGION_IP_CIDRS.get(region, ["27.0.0.0/8"])
-            hosts = []
-            for cidr in cidrs:
-                try:
-                    net = ipaddress.ip_network(cidr, strict=False)
-                    for _ in range(3):
-                        ip_int = int(net.network_address) + random.randint(
-                            1, 2 ** (32 - net.prefixlen) - 2
-                        )
-                        hosts.append(str(ipaddress.IPv4Address(ip_int)))
-                except Exception:
-                    continue
-            cls._cache[region] = hosts if hosts else [
-                f"{random.randint(1,255)}.{random.randint(0,255)}."
-                f"{random.randint(0,255)}.{random.randint(0,255)}"
-            ]
-        return random.choice(cls._cache[region])
+    def _build_cache(cls):
+        if cls._cache:
+            return
+        hosts = []
+        for cidr in cls.BD_CIDRS:
+            try:
+                net = ipaddress.ip_network(cidr, strict=False)
+                for _ in range(3):
+                    ip_int = int(net.network_address) + random.randint(
+                        1, 2 ** (32 - net.prefixlen) - 2
+                    )
+                    hosts.append(str(ipaddress.IPv4Address(ip_int)))
+            except Exception:
+                continue
+        cls._cache = hosts if hosts else ["27.147.128.5"]
 
     @classmethod
-    def get_ip_headers(cls, region="BD"):
-        ip = cls.get_random_ip(region)
+    def get_random_ip(cls):
+        cls._build_cache()
+        return random.choice(cls._cache)
+
+    @classmethod
+    def get_ip_headers(cls):
+        ip = cls.get_random_ip()
         return {"X-Forwarded-For": ip, "X-Real-IP": ip, "Client-IP": ip}
 
 
 # ======================================================================
-# NAME / BIO
+# NAME
 # ======================================================================
 def make_account_name():
-    """Uses SESSION_NICKNAME prefix + superscript suffix."""
     SUPERSCRIPTS = ['⁰','¹','²','³','⁴','⁵','⁶','⁷','⁸','⁹',
                     '₀','₁','₂','₃','₄','₅','₆','₇','₈','₉']
-    prefix = SESSION_NICKNAME or DEFAULT_NICKNAME
+    prefix = CURRENT_RUN["nickname"] or DEFAULT_NICKNAME
     suffix = ''.join(random.choice(SUPERSCRIPTS) for _ in range(4))
     return f"{prefix}{suffix}"
 
 
 # ======================================================================
-# PROTOBUF HELPERS
+# PROTOBUF
 # ======================================================================
 def encode_varint(value):
     result = []
@@ -306,11 +306,11 @@ async def http_post(url, headers, data, timeout=20):
 
 
 # ======================================================================
-# PIPELINE
+# PIPELINE (BD-only)
 # ======================================================================
-async def register_account(password, region="BD"):
+async def register_account(password):
     url = "https://ffmconnect.ppmainecoonghj.com/api/v2/oauth/guest:register"
-    ip_headers = IPRotator.get_ip_headers(region)
+    ip_headers = IPRotator.get_ip_headers()
     api_key_str = "2ee44819e9b4598845141067b281621874d0d5d7af9d8f7e00c1e54715b7d1e3"
     payload_json = {"app_id": 100067, "client_type": 2, "password": password, "source": 2}
     payload = json.dumps(payload_json, separators=(',', ':'))
@@ -335,9 +335,9 @@ async def register_account(password, region="BD"):
         return None, None
 
 
-async def get_access_token(uid, password, region="BD"):
+async def get_access_token(uid, password):
     url = "https://100067.connect.garena.com/oauth/guest/token/grant"
-    ip_headers = IPRotator.get_ip_headers(region)
+    ip_headers = IPRotator.get_ip_headers()
     headers = {
         "Host": "100067.connect.garena.com",
         "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 9; SM-G960F Build/PIE)",
@@ -362,9 +362,9 @@ async def get_access_token(uid, password, region="BD"):
         return None, None, None
 
 
-async def major_register(access_token, open_id, name, LANG='en', region="BD"):
-    url = "https://loginbp.ggpolarbear.com/MajorRegister"
-    ip_headers = IPRotator.get_ip_headers(region)
+async def major_register(access_token, open_id, name, LANG='en'):
+    url = f"{BD_SERVER_URL}/MajorRegister"
+    ip_headers = IPRotator.get_ip_headers()
     keystream = [
         0x30,0x30,0x30,0x32,0x30,0x31,0x37,0x30,0x30,0x30,0x30,0x30,
         0x32,0x30,0x31,0x37,0x30,0x30,0x30,0x30,0x30,0x32,0x30,0x31,
@@ -440,29 +440,35 @@ async def build_majorlogin_payload(open_id, access_token, version):
 
 
 async def send_majorlogin(payload):
-    global DYNAMIC_SERVER_URL
-    base = DYNAMIC_SERVER_URL.rstrip("/")
-    if not base.startswith(("http://", "https://")):
-        base = "https://" + base
-    url = f"{base}/MajorLogin"
-    Hr["X-GA-SV"] = str(int(time.time()))
-    Hr["ReleaseVersion"] = CURRENT_OB
-    ssl_context = ssl.create_default_context()
-    ssl_context.check_hostname = False
-    ssl_context.verify_mode = ssl.CERT_NONE
+    url = f"{BD_SERVER_URL}/MajorLogin"
+    ip_headers = IPRotator.get_ip_headers()
+    headers = {
+        "Accept": "*/*",
+        "Content-Type": "application/x-www-form-urlencoded",
+        "ReleaseVersion": RELEASE_VERSION,
+        "User-Agent": "UnityPlayer/2018.4.12f1 (UnityWebRequest/1.0, libcurl/8.5.0-DEV)",
+        "X-GA": "v1 1",
+        "X-GA-SV": str(int(time.time())),
+        "X-Unity-Version": "2018.4.12f1",
+        **ip_headers
+    }
+    ssl_ctx = ssl.create_default_context()
+    ssl_ctx.check_hostname = False
+    ssl_ctx.verify_mode = ssl.CERT_NONE
     try:
         async with aiohttp.ClientSession() as session:
-            async with session.post(url, data=payload, headers=Hr, ssl=ssl_context) as resp:
-                if resp.status != 200: return None
+            async with session.post(url, data=payload, headers=headers, ssl=ssl_ctx, timeout=20) as resp:
+                if resp.status != 200:
+                    return None
                 raw = await resp.read()
                 return raw[64:] if len(raw) > 64 else raw
     except Exception:
         return None
 
 
-async def get_login_data(server_url, jwt_token, payload, region="BD"):
+async def get_login_data(server_url, jwt_token, payload):
     url = f"{server_url.rstrip('/')}/GetLoginData"
-    ip_headers = IPRotator.get_ip_headers(region)
+    ip_headers = IPRotator.get_ip_headers()
     headers = {
         "Accept": "*/*", "Authorization": f"Bearer {jwt_token}",
         "Content-Type": "application/x-www-form-urlencoded",
@@ -486,7 +492,7 @@ def create_bio_payload(bio_text):
     return bytes.fromhex(encrypt_aes(create_proto(fields).hex()))
 
 
-async def change_bio(jwt_token, bio_text, region="BD"):
+async def change_bio(jwt_token, bio_text):
     url = "https://clientbp.ggpolarbear.com/UpdateSocialBasicInfo"
     headers = {
         "Accept": "*/*", "Authorization": f"Bearer {jwt_token}",
@@ -505,20 +511,64 @@ async def change_bio(jwt_token, bio_text, region="BD"):
 
 
 # ======================================================================
-# SAVE / LOAD
+# PERSISTENCE — JSON files stay in data/
 # ======================================================================
-async def save_session_json():
-    global SESSION_FILE
-    if not SESSION_FILE:
-        SESSION_FILE = new_session_filename()
+def new_session_filename():
+    rand = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
+    return f"MAHIR_ID_GEN_{rand}.json"
+
+
+def session_file_path(filename):
+    return os.path.join(DATA_DIR, filename)
+
+
+async def save_current_json():
+    """Persist accounts_list to CURRENT_RUN['file']."""
+    fname = CURRENT_RUN.get("file")
+    if not fname:
+        return
+    path = session_file_path(fname)
     async with accounts_lock:
         try:
-            tmp = SESSION_FILE + ".tmp"
+            tmp = path + ".tmp"
             with open(tmp, 'w', encoding='utf-8') as f:
                 json.dump(accounts_list, f, indent=2, ensure_ascii=False)
-            os.replace(tmp, SESSION_FILE)
+            os.replace(tmp, path)
         except Exception as e:
             log_msg(f"Save error: {e}", "error")
+
+
+def load_json_file(filename):
+    path = session_file_path(filename)
+    if not os.path.exists(path):
+        return None
+    try:
+        with open(path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        return None
+
+
+def list_all_json_files():
+    """Return all session JSON files sorted newest first."""
+    files = glob.glob(os.path.join(DATA_DIR, "MAHIR_ID_GEN_*.json"))
+    result = []
+    for fp in files:
+        try:
+            stat = os.stat(fp)
+            with open(fp, 'r', encoding='utf-8') as f:
+                data = json.load(f)
+            result.append({
+                "filename": os.path.basename(fp),
+                "count": len(data) if isinstance(data, list) else 0,
+                "size": stat.st_size,
+                "modified": datetime.fromtimestamp(stat.st_mtime).isoformat(),
+                "mtime": stat.st_mtime,
+            })
+        except Exception:
+            continue
+    result.sort(key=lambda x: x["mtime"], reverse=True)
+    return result
 
 
 def account_exists(uid):
@@ -544,7 +594,7 @@ async def bump_fail():
 # ======================================================================
 # ACCOUNT CREATION
 # ======================================================================
-async def create_full_account(thread_id, region="BD", max_retries=3):
+async def create_full_account(thread_id, max_retries=3):
     for attempt in range(max_retries):
         if STOP_EVENT.is_set():
             return None
@@ -552,17 +602,17 @@ async def create_full_account(thread_id, region="BD", max_retries=3):
             password = f"MAHIR_{random.randint(1, 9999)}"
             name = make_account_name()
 
-            register_uid, password = await register_account(password, region)
+            register_uid, password = await register_account(password)
             if not register_uid:
                 await asyncio.sleep(random.uniform(0.3, 1.0))
                 continue
 
-            access_token, open_id, platform_type = await get_access_token(register_uid, password, region)
+            access_token, open_id, platform_type = await get_access_token(register_uid, password)
             if not access_token:
                 await asyncio.sleep(0.4)
                 continue
 
-            reg_response = await major_register(access_token, open_id, name, region=region)
+            reg_response = await major_register(access_token, open_id, name)
             if 3 not in reg_response:
                 continue
 
@@ -577,13 +627,13 @@ async def create_full_account(thread_id, region="BD", max_retries=3):
             if not jwt_token:
                 continue
 
-            server_url = login_response.get(10) or DYNAMIC_SERVER_URL
-            await get_login_data(server_url, jwt_token, payload, region)
+            server_url = login_response.get(10) or BD_SERVER_URL
+            await get_login_data(server_url, jwt_token, payload)
 
             if account_exists(register_uid) or account_exists(account_id):
                 return None
 
-            bio_success = await change_bio(jwt_token, SESSION_BIO)
+            bio_success = await change_bio(jwt_token, CURRENT_RUN["bio"])
             count = await get_next_count()
 
             account = {
@@ -591,18 +641,21 @@ async def create_full_account(thread_id, region="BD", max_retries=3):
                 'password': password,
                 'name': name,
                 'account_id': account_id,
-                'region': region,
+                'region': "BD",
                 'jwt_token': jwt_token,
-                'bio': SESSION_BIO,
+                'bio': CURRENT_RUN["bio"],
                 'bio_updated': bio_success,
                 'created_at': datetime.now().isoformat()
             }
             async with accounts_lock:
                 accounts_list.append(account)
 
-            await save_session_json()
+            await save_current_json()
 
-            log_msg(f"✅ [T{thread_id}] #{count} UID: {register_uid} | ID: {account_id} | {name}", "success")
+            log_msg(
+                f"✅ [T{thread_id}] #{count} UID: {register_uid} | ID: {account_id} | {name}",
+                "success"
+            )
             return account
 
         except (aiohttp.ClientOSError, aiohttp.ClientConnectorError, OSError) as e:
@@ -621,10 +674,10 @@ async def create_full_account(thread_id, region="BD", max_retries=3):
     return None
 
 
-async def worker(thread_id, region="BD"):
+async def worker(thread_id):
     while not STOP_EVENT.is_set():
         try:
-            await create_full_account(thread_id, region)
+            await create_full_account(thread_id)
         except asyncio.CancelledError:
             raise
         except Exception as e:
@@ -633,26 +686,9 @@ async def worker(thread_id, region="BD"):
 
 
 # ======================================================================
-# AUTH DECORATOR
-# ======================================================================
-def require_login(role=None):
-    def deco(func):
-        async def wrapper(request):
-            sess = get_current_session(request)
-            if not sess:
-                return web.json_response({"ok": False, "error": "Not logged in"}, status=401)
-            if role and sess["role"] != role and sess["role"] != "owner":
-                return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
-            return await func(request)
-        return wrapper
-    return deco
-
-
-# ======================================================================
 # WEB HANDLERS
 # ======================================================================
 async def handle_index(request):
-    # already logged in → dashboard
     if get_current_session(request):
         raise web.HTTPFound("/dashboard")
     path = os.path.join(os.path.dirname(__file__), "templates", "login.html")
@@ -682,7 +718,7 @@ async def handle_login(request):
         return web.json_response({"ok": False, "error": "Invalid role"})
 
     if not check_credentials(username, password, role):
-        log_msg(f"❌ Failed login attempt ({role}: {username})", "warning")
+        log_msg(f"❌ Failed login ({role}: {username})", "warning")
         return web.json_response({"ok": False, "error": "Invalid credentials"})
 
     sid = make_session(username, role)
@@ -715,8 +751,7 @@ async def handle_me(request):
 
 async def handle_start(request):
     global GENERATION_RUNNING, STOP_EVENT, WORKER_TASKS
-    global SESSION_NICKNAME, SESSION_BIO, SESSION_FILE
-    global accounts_list, success_count, fail_count
+    global CURRENT_RUN, accounts_list, success_count, fail_count
 
     sess = get_current_session(request)
     if not sess:
@@ -730,20 +765,24 @@ async def handle_start(request):
     except Exception:
         body = {}
 
-    # ---- ROLE-BASED FIELDS ----
+    # Role-based fields
     if sess["role"] == "owner":
         nickname = str(body.get("nickname", "")).strip()[:20] or DEFAULT_NICKNAME
         bio      = str(body.get("bio", "")).strip() or DEFAULT_BIO
     else:
-        # user: forced defaults
         nickname = DEFAULT_NICKNAME
         bio      = DEFAULT_BIO
 
-    SESSION_NICKNAME = nickname
-    SESSION_BIO      = bio
-    SESSION_FILE     = new_session_filename()
+    fname = new_session_filename()
 
-    # reset per-session counters
+    CURRENT_RUN = {
+        "owner": sess["username"],
+        "role": sess["role"],
+        "nickname": nickname,
+        "bio": bio,
+        "file": fname,
+    }
+
     accounts_list = []
     success_count = 0
     fail_count    = 0
@@ -756,16 +795,18 @@ async def handle_start(request):
     GENERATION_RUNNING = True
     WORKER_TASKS = []
     for i in range(workers):
-        WORKER_TASKS.append(asyncio.create_task(worker(i, "BD")))
+        WORKER_TASKS.append(asyncio.create_task(worker(i)))
+
+    # write empty file immediately so download works even before first account
+    await save_current_json()
 
     log_msg(
         f"▶ Started {workers} workers | role={sess['role']} | "
-        f"name={nickname} | file={SESSION_FILE}",
+        f"name={nickname} | file={fname}",
         "success"
     )
     return web.json_response({
-        "ok": True, "workers": workers,
-        "session_file": SESSION_FILE,
+        "ok": True, "workers": workers, "session_file": fname,
     })
 
 
@@ -783,9 +824,9 @@ async def handle_stop(request):
     await asyncio.gather(*WORKER_TASKS, return_exceptions=True)
     WORKER_TASKS.clear()
     GENERATION_RUNNING = False
-    await save_session_json()
+    await save_current_json()
     log_msg("■ Stopped — JSON saved", "warning")
-    return web.json_response({"ok": True, "session_file": SESSION_FILE})
+    return web.json_response({"ok": True, "session_file": CURRENT_RUN["file"]})
 
 
 async def handle_stats(request):
@@ -798,7 +839,30 @@ async def handle_stats(request):
         "fail": fail_count,
         "total": len(accounts_list),
         "logs": log_buffer[-80:],
-        "session_file": SESSION_FILE,
+        "session_file": CURRENT_RUN.get("file"),
+        "nickname": CURRENT_RUN.get("nickname"),
+        "bio": CURRENT_RUN.get("bio"),
+        "owner": CURRENT_RUN.get("owner"),
+        "role": CURRENT_RUN.get("role"),
+    })
+
+
+async def handle_current_json(request):
+    """Return current run's accounts as JSON (works even while running)."""
+    sess = get_current_session(request)
+    if not sess:
+        return web.json_response({"ok": False, "error": "Not logged in"}, status=401)
+
+    # Always read from file so refresh persists
+    fname = CURRENT_RUN.get("file")
+    data = load_json_file(fname) if fname else accounts_list
+    if data is None:
+        data = accounts_list
+    return web.json_response({
+        "ok": True,
+        "file": fname,
+        "count": len(data),
+        "accounts": data,
     })
 
 
@@ -807,17 +871,77 @@ async def handle_download(request):
     if not sess:
         return web.Response(status=401, text="Not logged in")
 
-    fname = request.query.get("file", "") or SESSION_FILE
-    # Security: only allow files starting with MAHIR_ID_GEN_
-    if not fname.startswith("MAHIR_ID_GEN_") or not fname.endswith(".json"):
+    fname = request.query.get("file", "") or CURRENT_RUN.get("file", "")
+    if not fname or not fname.startswith("MAHIR_ID_GEN_") or not fname.endswith(".json"):
         return web.Response(status=400, text="Invalid filename")
-    if not os.path.exists(fname):
-        return web.Response(status=404, text="File not found")
+
+    path = session_file_path(fname)
+
+    # Owner-only for arbitrary files; user only for their own
+    if sess["role"] != "owner" and fname != CURRENT_RUN.get("file"):
+        return web.Response(status=403, text="Forbidden")
+
+    if not os.path.exists(path):
+        # create from memory if it's the current one
+        if fname == CURRENT_RUN.get("file"):
+            await save_current_json()
+        else:
+            return web.Response(status=404, text="File not found")
 
     return web.FileResponse(
-        fname,
+        path,
         headers={"Content-Disposition": f'attachment; filename="{fname}"'}
     )
+
+
+# ---- OWNER ONLY ----
+async def handle_owner_list(request):
+    sess = get_current_session(request)
+    if not sess or sess["role"] != "owner":
+        return web.json_response({"ok": False, "error": "Owner only"}, status=403)
+    return web.json_response({"ok": True, "files": list_all_json_files()})
+
+
+async def handle_owner_view(request):
+    sess = get_current_session(request)
+    if not sess or sess["role"] != "owner":
+        return web.json_response({"ok": False, "error": "Owner only"}, status=403)
+
+    fname = request.query.get("file", "")
+    if not fname or not fname.startswith("MAHIR_ID_GEN_") or not fname.endswith(".json"):
+        return web.json_response({"ok": False, "error": "Invalid filename"}, status=400)
+
+    data = load_json_file(fname)
+    if data is None:
+        return web.json_response({"ok": False, "error": "Not found"}, status=404)
+
+    return web.json_response({
+        "ok": True,
+        "file": fname,
+        "count": len(data),
+        "accounts": data,
+    })
+
+
+async def handle_owner_delete(request):
+    sess = get_current_session(request)
+    if not sess or sess["role"] != "owner":
+        return web.json_response({"ok": False, "error": "Owner only"}, status=403)
+
+    try:
+        body = await request.json()
+    except Exception:
+        body = {}
+
+    fname = str(body.get("file", "")).strip()
+    if not fname or not fname.startswith("MAHIR_ID_GEN_") or not fname.endswith(".json"):
+        return web.json_response({"ok": False, "error": "Invalid filename"}, status=400)
+
+    path = session_file_path(fname)
+    if os.path.exists(path):
+        os.remove(path)
+        log_msg(f"🗑 Deleted {fname}", "warning")
+    return web.json_response({"ok": True})
 
 
 # ======================================================================
@@ -837,15 +961,20 @@ async def async_main():
     HTTP_SESSION = aiohttp.ClientSession(connector=connector)
 
     app = web.Application()
-    app.router.add_get("/",             handle_index)
-    app.router.add_get("/dashboard",    handle_dashboard)
-    app.router.add_post("/api/login",   handle_login)
-    app.router.add_post("/api/logout",  handle_logout)
-    app.router.add_get("/api/me",       handle_me)
-    app.router.add_post("/api/start",   handle_start)
-    app.router.add_post("/api/stop",    handle_stop)
-    app.router.add_get("/api/stats",    handle_stats)
-    app.router.add_get("/api/download", handle_download)
+    app.router.add_get ("/",              handle_index)
+    app.router.add_get ("/dashboard",     handle_dashboard)
+    app.router.add_post("/api/login",     handle_login)
+    app.router.add_post("/api/logout",    handle_logout)
+    app.router.add_get ("/api/me",        handle_me)
+    app.router.add_post("/api/start",     handle_start)
+    app.router.add_post("/api/stop",      handle_stop)
+    app.router.add_get ("/api/stats",     handle_stats)
+    app.router.add_get ("/api/current",   handle_current_json)
+    app.router.add_get ("/api/download",  handle_download)
+    # owner
+    app.router.add_get ("/api/owner/list",   handle_owner_list)
+    app.router.add_get ("/api/owner/view",   handle_owner_view)
+    app.router.add_post("/api/owner/delete", handle_owner_delete)
 
     runner = web.AppRunner(app)
     await runner.setup()
@@ -855,6 +984,7 @@ async def async_main():
     print(f"\n{Fore.GREEN}{Style.BRIGHT}🌐 Dashboard: http://localhost:{WEB_PORT}{Style.RESET_ALL}")
     print(f"{Fore.CYAN}👤 User  : {USER_CREDENTIALS['username']} / {USER_CREDENTIALS['password']}{Style.RESET_ALL}")
     print(f"{Fore.MAGENTA}👑 Owner : {OWNER_CREDENTIALS['username']} / {OWNER_CREDENTIALS['password']}{Style.RESET_ALL}")
+    print(f"{Fore.YELLOW}📂 Data dir: {DATA_DIR}{Style.RESET_ALL}")
     print(f"{Fore.YELLOW}Press CTRL+C to stop{Style.RESET_ALL}\n")
 
     try:
@@ -867,7 +997,7 @@ async def async_main():
             for t in WORKER_TASKS:
                 t.cancel()
             await asyncio.gather(*WORKER_TASKS, return_exceptions=True)
-        await save_session_json()
+        await save_current_json()
         await HTTP_SESSION.close()
         await runner.cleanup()
 
