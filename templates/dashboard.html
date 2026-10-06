@@ -6,592 +6,386 @@
 <title>Dashboard · MAHIR ID Generator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg-0: #08090f;
-    --bg-1: #0f1119;
-    --bg-2: #161a26;
+    --bg-0: #08090f; --bg-1: #0f1119;
     --card: rgba(22, 26, 38, 0.7);
-    --card-hi: rgba(30, 36, 52, 0.85);
     --border: rgba(255, 255, 255, 0.08);
     --border-hi: rgba(255, 255, 255, 0.16);
-    --text-0: #f5f7ff;
-    --text-1: #a8b0c2;
-    --text-2: #6b7385;
-    --accent: #ffb02e;
-    --accent-hi: #ffd166;
-    --accent-glow: rgba(255, 176, 46, 0.4);
-    --danger: #ff4d6d;
-    --success: #22e5a5;
-    --info: #38bdf8;
-    --owner: #ec4899;
-    --user: #06b6d4;
-    --radius: 12px;
-    --radius-lg: 16px;
+    --text-0: #f5f7ff; --text-1: #a8b0c2; --text-2: #6b7385;
+    --accent: #ffb02e; --accent-glow: rgba(255, 176, 46, 0.4);
+    --danger: #ff4d6d; --success: #22e5a5; --info: #38bdf8;
+    --owner: #ec4899; --user: #06b6d4;
+    --radius: 12px; --radius-lg: 16px;
   }
-
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-
+  * { margin:0; padding:0; box-sizing:border-box; }
   body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-    background: var(--bg-0);
-    color: var(--text-0);
-    min-height: 100vh;
-    -webkit-font-smoothing: antialiased;
+    font-family:'Inter',sans-serif; background:var(--bg-0); color:var(--text-0);
+    min-height:100vh; -webkit-font-smoothing:antialiased;
     background-image:
-      radial-gradient(circle at 15% 0%, rgba(255, 107, 53, 0.08), transparent 40%),
-      radial-gradient(circle at 85% 100%, rgba(79, 70, 229, 0.08), transparent 40%);
-    background-attachment: fixed;
+      radial-gradient(circle at 15% 0%, rgba(255,107,53,0.08), transparent 40%),
+      radial-gradient(circle at 85% 100%, rgba(79,70,229,0.08), transparent 40%);
+    background-attachment:fixed;
   }
+  ::-webkit-scrollbar { width:10px; height:10px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.08); border-radius:10px; }
+  ::-webkit-scrollbar-thumb:hover { background:rgba(255,255,255,0.16); }
 
-  /* ─── Scrollbar ─── */
-  ::-webkit-scrollbar { width: 10px; height: 10px; }
-  ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 10px; }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.16); }
+  .app { max-width:1400px; margin:0 auto; padding:20px 24px 60px; }
 
-  /* ─── Layout ─── */
-  .app {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 20px 24px 60px;
-  }
-
-  /* ─── Topbar ─── */
+  /* Topbar */
   .topbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 14px 20px;
-    background: var(--card);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    margin-bottom: 20px;
-    gap: 16px;
-    flex-wrap: wrap;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:14px 20px; background:var(--card);
+    backdrop-filter:blur(20px) saturate(180%);
+    border:1px solid var(--border); border-radius:var(--radius-lg);
+    margin-bottom:20px; gap:16px; flex-wrap:wrap;
   }
-
-  .brand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-width: 0;
-  }
+  .brand { display:flex; align-items:center; gap:12px; }
   .brand-logo {
-    width: 40px; height: 40px;
-    border-radius: 11px;
-    background: linear-gradient(135deg, #ff6b35, #ffb02e 50%, #ffd166);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 8px 20px -6px var(--accent-glow);
-    flex-shrink: 0;
+    width:40px; height:40px; border-radius:11px;
+    background:linear-gradient(135deg,#ff6b35,#ffb02e 50%,#ffd166);
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:0 8px 20px -6px var(--accent-glow);
   }
-  .brand-logo svg { width: 22px; height: 22px; color: #0a0a0a; }
-  .brand-txt h1 {
-    font-size: 16px;
-    font-weight: 800;
-    letter-spacing: -0.02em;
-    white-space: nowrap;
-  }
+  .brand-logo svg { width:22px; height:22px; color:#0a0a0a; }
+  .brand-txt h1 { font-size:16px; font-weight:800; letter-spacing:-0.02em; }
   .brand-txt p {
-    font-size: 11px;
-    color: var(--text-2);
-    font-family: 'JetBrains Mono', monospace;
-    display: flex;
-    align-items: center;
-    gap: 6px;
+    font-size:11px; color:var(--text-2);
+    font-family:'JetBrains Mono',monospace;
+    display:flex; align-items:center; gap:6px;
   }
   .brand-txt p .dot {
-    width: 5px; height: 5px; border-radius: 50%;
-    background: var(--success);
-    box-shadow: 0 0 8px var(--success);
-    animation: pulseDot 1.5s ease-in-out infinite;
+    width:5px; height:5px; border-radius:50%; background:var(--success);
+    box-shadow:0 0 8px var(--success); animation:pulseDot 1.5s infinite;
   }
-  @keyframes pulseDot {
-    0%,100% { opacity: 1; }
-    50%     { opacity: 0.4; }
-  }
+  @keyframes pulseDot { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
-  .topbar-right {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
-
+  .topbar-right { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
   .user-pill {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    padding: 7px 12px 7px 8px;
-    background: rgba(0,0,0,0.35);
-    border: 1px solid var(--border);
-    border-radius: 30px;
-    font-size: 13px;
-    font-weight: 600;
+    display:flex; align-items:center; gap:9px;
+    padding:7px 12px 7px 8px; background:rgba(0,0,0,0.35);
+    border:1px solid var(--border); border-radius:30px;
+    font-size:13px; font-weight:600;
   }
   .user-avatar {
-    width: 26px; height: 26px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: 800;
-    color: #fff;
+    width:26px; height:26px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    font-size:12px; font-weight:800; color:#fff;
   }
-  .user-pill.owner .user-avatar { background: linear-gradient(135deg, var(--owner), #be185d); }
-  .user-pill.user  .user-avatar { background: linear-gradient(135deg, var(--user), #0891b2); }
+  .user-pill.owner .user-avatar { background:linear-gradient(135deg,var(--owner),#be185d); }
+  .user-pill.user .user-avatar { background:linear-gradient(135deg,var(--user),#0891b2); }
 
   .btn {
-    padding: 9px 15px;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    background: rgba(255,255,255,0.04);
-    color: var(--text-0);
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    white-space: nowrap;
+    padding:9px 15px; border:1px solid var(--border); border-radius:10px;
+    background:rgba(255,255,255,0.04); color:var(--text-0);
+    font-family:inherit; font-size:13px; font-weight:600; cursor:pointer;
+    transition:all 0.2s; display:inline-flex; align-items:center; gap:7px;
+    white-space:nowrap;
   }
-  .btn svg { width: 15px; height: 15px; }
-  .btn:hover { background: rgba(255,255,255,0.08); border-color: var(--border-hi); }
-  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn svg { width:15px; height:15px; }
+  .btn:hover { background:rgba(255,255,255,0.08); border-color:var(--border-hi); }
+  .btn:disabled { opacity:0.5; cursor:not-allowed; }
 
   .btn-primary {
-    background: linear-gradient(135deg, #ff6b35, #ffb02e);
-    color: #0a0a0a;
-    border-color: transparent;
-    box-shadow: 0 8px 22px -8px var(--accent-glow);
+    background:linear-gradient(135deg,#ff6b35,#ffb02e); color:#0a0a0a;
+    border-color:transparent; box-shadow:0 8px 22px -8px var(--accent-glow);
   }
-  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 12px 28px -8px var(--accent-glow); background: linear-gradient(135deg, #ff7a45, #ffbe3d); }
+  .btn-primary:hover:not(:disabled) { transform:translateY(-1px); }
 
   .btn-danger {
-    background: linear-gradient(135deg, #ff4d6d, #dc2626);
-    color: #fff;
-    border-color: transparent;
-    box-shadow: 0 8px 22px -8px rgba(255,77,109,0.5);
+    background:linear-gradient(135deg,#ff4d6d,#dc2626); color:#fff;
+    border-color:transparent; box-shadow:0 8px 22px -8px rgba(255,77,109,0.5);
   }
-  .btn-danger:hover { transform: translateY(-1px); }
-  .btn-danger:disabled { background: rgba(255,255,255,0.05); color: var(--text-2); box-shadow: none; }
+  .btn-danger:hover:not(:disabled) { transform:translateY(-1px); }
 
-  .btn-ghost { background: transparent; }
-
-  /* ─── Stats ─── */
+  /* Stats */
   .stats {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 14px;
-    margin-bottom: 20px;
+    display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+    gap:14px; margin-bottom:20px;
   }
   .stat-card {
-    padding: 18px 20px;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    backdrop-filter: blur(16px);
-    position: relative;
-    overflow: hidden;
-    transition: all 0.25s;
+    padding:18px 20px; background:var(--card);
+    border:1px solid var(--border); border-radius:var(--radius-lg);
+    backdrop-filter:blur(16px); transition:all 0.25s; position:relative; overflow:hidden;
   }
-  .stat-card:hover {
-    border-color: var(--border-hi);
-    transform: translateY(-2px);
-  }
-  .stat-card::after {
-    content: '';
-    position: absolute;
-    top: 0; right: 0;
-    width: 80px; height: 80px;
-    border-radius: 50%;
-    filter: blur(30px);
-    opacity: 0.4;
-    pointer-events: none;
-  }
-  .stat-card.total::after  { background: var(--info); }
-  .stat-card.success::after { background: var(--success); }
-  .stat-card.failed::after  { background: var(--danger); }
-  .stat-card.status::after  { background: var(--accent); }
-
-  .stat-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 10px;
-  }
+  .stat-card:hover { border-color:var(--border-hi); transform:translateY(-2px); }
   .stat-icon {
-    width: 32px; height: 32px;
-    border-radius: 9px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: rgba(255,255,255,0.05);
+    width:32px; height:32px; border-radius:9px;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(255,255,255,0.05); margin-bottom:10px;
   }
-  .stat-icon svg { width: 17px; height: 17px; }
-  .stat-card.total .stat-icon svg   { color: var(--info); }
-  .stat-card.success .stat-icon svg { color: var(--success); }
-  .stat-card.failed .stat-icon svg  { color: var(--danger); }
-  .stat-card.status .stat-icon svg  { color: var(--accent); }
-
+  .stat-icon svg { width:17px; height:17px; }
+  .stat-card.total .stat-icon svg   { color:var(--info); }
+  .stat-card.success .stat-icon svg { color:var(--success); }
+  .stat-card.failed .stat-icon svg  { color:var(--danger); }
+  .stat-card.status .stat-icon svg  { color:var(--accent); }
   .stat-value {
-    font-size: 30px;
-    font-weight: 800;
-    letter-spacing: -0.03em;
-    line-height: 1;
-    margin-bottom: 6px;
-    font-variant-numeric: tabular-nums;
+    font-size:30px; font-weight:800; letter-spacing:-0.03em;
+    line-height:1; margin-bottom:6px; font-variant-numeric:tabular-nums;
   }
-  .stat-label {
-    font-size: 12px;
-    color: var(--text-2);
-    font-weight: 500;
-  }
+  .stat-label { font-size:12px; color:var(--text-2); font-weight:500; }
 
   .status-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 7px;
-    font-size: 13px;
-    font-weight: 700;
-    font-family: 'JetBrains Mono', monospace;
+    display:inline-flex; align-items:center; gap:7px;
+    font-size:13px; font-weight:700;
+    font-family:'JetBrains Mono',monospace;
   }
-  .status-badge .led {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--text-2);
+  .status-badge .led { width:8px; height:8px; border-radius:50%; background:var(--text-2); }
+  .status-badge.running { color:var(--success); }
+  .status-badge.running .led {
+    background:var(--success); box-shadow:0 0 10px var(--success);
+    animation:pulseDot 1.2s infinite;
   }
-  .status-badge.running { color: var(--success); }
-  .status-badge.running .led { background: var(--success); box-shadow: 0 0 10px var(--success); animation: pulseDot 1.2s ease-in-out infinite; }
-  .status-badge.idle { color: var(--text-1); }
+  .status-badge.idle { color:var(--text-1); }
 
-  /* ─── Tabs ─── */
+  /* Tabs */
   .tab-bar {
-    display: flex;
-    gap: 6px;
-    padding: 5px;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    margin-bottom: 20px;
-    overflow-x: auto;
-    width: fit-content;
-    max-width: 100%;
+    display:flex; gap:6px; padding:5px; background:var(--card);
+    border:1px solid var(--border); border-radius:12px;
+    margin-bottom:20px; overflow-x:auto; width:fit-content; max-width:100%;
   }
   .tab-bar button {
-    padding: 9px 18px;
-    border: none;
-    background: transparent;
-    color: var(--text-1);
-    font-family: inherit;
-    font-size: 13.5px;
-    font-weight: 600;
-    cursor: pointer;
-    border-radius: 8px;
-    transition: all 0.2s;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    white-space: nowrap;
+    padding:9px 18px; border:none; background:transparent;
+    color:var(--text-1); font-family:inherit; font-size:13.5px;
+    font-weight:600; cursor:pointer; border-radius:8px;
+    transition:all 0.2s; display:inline-flex; align-items:center;
+    gap:8px; white-space:nowrap;
   }
-  .tab-bar button svg { width: 15px; height: 15px; }
+  .tab-bar button svg { width:15px; height:15px; }
   .tab-bar button.active {
-    background: rgba(255,255,255,0.08);
-    color: var(--text-0);
-    box-shadow: 0 0 0 1px var(--border-hi) inset;
+    background:rgba(255,255,255,0.08); color:var(--text-0);
+    box-shadow:0 0 0 1px var(--border-hi) inset;
   }
-  .tab-bar button:hover:not(.active) { color: var(--text-0); }
+  .tab-bar button:hover:not(.active) { color:var(--text-0); }
 
-  .tab-panel { display: none; animation: fadeIn 0.3s ease; }
-  .tab-panel.active { display: block; }
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(6px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
+  .tab-panel { display:none; animation:fadeIn 0.3s ease; }
+  .tab-panel.active { display:block; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
 
-  /* ─── Grid ─── */
-  .grid-2 {
-    display: grid;
-    grid-template-columns: 1fr 1.1fr;
-    gap: 16px;
-  }
-  @media (max-width: 960px) { .grid-2 { grid-template-columns: 1fr; } }
+  /* Grid */
+  .grid-2 { display:grid; grid-template-columns:1fr 1.1fr; gap:16px; }
+  @media (max-width:960px) { .grid-2 { grid-template-columns:1fr; } }
 
-  /* ─── Card ─── */
+  /* Card */
   .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    backdrop-filter: blur(16px);
-    overflow: hidden;
-    margin-bottom: 16px;
+    background:var(--card); border:1px solid var(--border);
+    border-radius:var(--radius-lg); backdrop-filter:blur(16px);
+    overflow:hidden; margin-bottom:16px;
   }
   .card-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 16px 20px;
-    border-bottom: 1px solid var(--border);
-    gap: 12px;
-    flex-wrap: wrap;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 20px; border-bottom:1px solid var(--border);
+    gap:12px; flex-wrap:wrap;
   }
   .card-title {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 14px;
-    font-weight: 700;
-    color: var(--text-0);
+    display:flex; align-items:center; gap:10px;
+    font-size:14px; font-weight:700; color:var(--text-0);
   }
-  .card-title svg { width: 17px; height: 17px; color: var(--accent); }
-  .card-body { padding: 20px; }
+  .card-title svg { width:17px; height:17px; color:var(--accent); }
+  .card-body { padding:20px; }
 
-  /* ─── Form ─── */
-  .field { margin-bottom: 15px; }
+  /* Form */
+  .field { margin-bottom:15px; }
   .field label {
-    display: block;
-    font-size: 11.5px;
-    font-weight: 600;
-    color: var(--text-1);
-    margin-bottom: 7px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
+    display:block; font-size:11.5px; font-weight:600;
+    color:var(--text-1); margin-bottom:7px;
+    text-transform:uppercase; letter-spacing:0.06em;
   }
-  .field input, .field select {
-    width: 100%;
-    padding: 11px 14px;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    background: rgba(0,0,0,0.3);
-    color: var(--text-0);
-    font-family: inherit;
-    font-size: 14px;
-    outline: none;
-    transition: all 0.2s;
+  .field input, .field select, .field textarea {
+    width:100%; padding:11px 14px; border-radius:10px;
+    border:1px solid var(--border); background:rgba(0,0,0,0.3);
+    color:var(--text-0); font-family:inherit; font-size:14px;
+    outline:none; transition:all 0.2s;
   }
-  .field input:focus, .field select:focus {
-    border-color: var(--accent);
-    background: rgba(0,0,0,0.45);
-    box-shadow: 0 0 0 4px rgba(255,176,46,0.12);
+  .field textarea {
+    font-family:'JetBrains Mono',monospace; font-size:12.5px;
+    resize:vertical; min-height:60px;
   }
-  .field input:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+  .field input:focus, .field select:focus, .field textarea:focus {
+    border-color:var(--accent); background:rgba(0,0,0,0.45);
+    box-shadow:0 0 0 4px rgba(255,176,46,0.12);
   }
-  .field .hint {
-    font-size: 11px;
-    color: var(--text-2);
-    margin-top: 5px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-  }
-  .field .hint svg { width: 12px; height: 12px; }
+  .field input:disabled, .field textarea:disabled { opacity:0.5; cursor:not-allowed; }
 
-  .form-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 12px;
-  }
-  @media (max-width: 520px) { .form-row { grid-template-columns: 1fr; } }
-
-  /* ─── Log ─── */
+  /* Log */
   .log-view {
-    background: #05060a;
-    border-radius: 10px;
-    padding: 14px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    line-height: 1.7;
-    max-height: 340px;
-    overflow-y: auto;
-    border: 1px solid var(--border);
+    background:#05060a; border-radius:10px; padding:14px;
+    font-family:'JetBrains Mono',monospace; font-size:12px;
+    line-height:1.7; max-height:340px; overflow-y:auto;
+    border:1px solid var(--border);
   }
-  .log-line { display: flex; gap: 10px; padding: 2px 0; }
-  .log-line .t { color: var(--text-2); flex-shrink: 0; }
-  .log-line .m { word-break: break-word; }
-  .log-line.success .m { color: var(--success); }
-  .log-line.error   .m { color: #ff8fa8; }
-  .log-line.warning .m { color: var(--accent); }
-  .log-line.info    .m { color: var(--info); }
+  .log-line { display:flex; gap:10px; padding:2px 0; }
+  .log-line .t { color:var(--text-2); flex-shrink:0; }
+  .log-line .m { word-break:break-word; }
+  .log-line.success .m { color:var(--success); }
+  .log-line.error   .m { color:#ff8fa8; }
+  .log-line.warning .m { color:var(--accent); }
+  .log-line.info    .m { color:var(--info); }
 
-  /* ─── Code preview ─── */
+  /* Export format grid */
+  .format-grid {
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+    gap:10px; margin-bottom:16px;
+  }
+  .format-card {
+    padding:14px 16px; background:rgba(0,0,0,0.25);
+    border:2px solid var(--border); border-radius:12px;
+    cursor:pointer; transition:all 0.2s;
+    display:flex; flex-direction:column; gap:6px;
+    position:relative;
+  }
+  .format-card:hover {
+    border-color:var(--border-hi);
+    background:rgba(0,0,0,0.4);
+    transform:translateY(-2px);
+  }
+  .format-card.selected {
+    border-color:var(--accent);
+    background:rgba(255,176,46,0.08);
+    box-shadow:0 0 0 4px rgba(255,176,46,0.08);
+  }
+  .format-card .fmt-icon {
+    width:32px; height:32px; border-radius:9px;
+    background:rgba(255,255,255,0.05);
+    display:flex; align-items:center; justify-content:center;
+    margin-bottom:4px;
+  }
+  .format-card .fmt-icon svg { width:17px; height:17px; color:var(--accent); }
+  .format-card .fmt-name { font-size:13px; font-weight:700; }
+  .format-card .fmt-desc {
+    font-size:11px; color:var(--text-2);
+    font-family:'JetBrains Mono',monospace;
+    word-break:break-all;
+  }
+  .format-card .check {
+    position:absolute; top:10px; right:10px;
+    width:20px; height:20px; border-radius:50%;
+    background:var(--accent); color:#000;
+    display:none; align-items:center; justify-content:center;
+    font-size:12px; font-weight:800;
+  }
+  .format-card.selected .check { display:flex; }
+
+  /* Custom template box */
+  .custom-box {
+    background:rgba(0,0,0,0.3); border-radius:10px;
+    padding:14px; margin-bottom:14px;
+    border:1px dashed rgba(255,176,46,0.3);
+    display:none;
+  }
+  .custom-box.show { display:block; }
+  .custom-box .hint {
+    font-size:11px; color:var(--text-2);
+    font-family:'JetBrains Mono',monospace;
+    margin-top:8px; line-height:1.6;
+  }
+  .custom-box .hint code {
+    background:rgba(255,255,255,0.06); padding:2px 5px;
+    border-radius:3px; color:var(--accent);
+  }
+
+  /* Code preview */
   .code-view {
-    background: #05060a;
-    border-radius: 10px;
-    padding: 14px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11.5px;
-    line-height: 1.6;
-    max-height: 340px;
-    overflow: auto;
-    border: 1px solid var(--border);
-    color: #b8c2d9;
-    white-space: pre;
-    tab-size: 2;
+    background:#05060a; border-radius:10px; padding:14px;
+    font-family:'JetBrains Mono',monospace; font-size:11.5px;
+    line-height:1.6; max-height:340px; overflow:auto;
+    border:1px solid var(--border); color:#b8c2d9;
+    white-space:pre; tab-size:2; margin-top:12px;
   }
-  .code-view:empty::before { content: '// No data yet'; color: var(--text-2); }
+  .code-view:empty::before { content:'// No preview'; color:var(--text-2); }
 
-  /* ─── Action row ─── */
-  .actions {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-  .actions .btn { flex: 0 1 auto; }
+  /* Actions */
+  .actions { display:flex; gap:8px; flex-wrap:wrap; }
 
-  /* ─── Sessions list ─── */
-  .sessions-list { display: flex; flex-direction: column; gap: 10px; }
+  /* Sessions list */
+  .sessions-list { display:flex; flex-direction:column; gap:10px; }
   .session-row {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 14px 16px;
-    background: rgba(0,0,0,0.25);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    transition: all 0.2s;
+    display:flex; align-items:center; gap:14px;
+    padding:14px 16px; background:rgba(0,0,0,0.25);
+    border:1px solid var(--border); border-radius:12px; transition:all 0.2s;
   }
-  .session-row:hover {
-    border-color: var(--border-hi);
-    background: rgba(0,0,0,0.4);
-  }
+  .session-row:hover { border-color:var(--border-hi); background:rgba(0,0,0,0.4); }
   .session-icon {
-    width: 40px; height: 40px;
-    border-radius: 10px;
-    background: linear-gradient(135deg, rgba(255,176,46,0.15), rgba(255,107,53,0.15));
-    border: 1px solid rgba(255,176,46,0.2);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
+    width:40px; height:40px; border-radius:10px;
+    background:linear-gradient(135deg,rgba(255,176,46,0.15),rgba(255,107,53,0.15));
+    border:1px solid rgba(255,176,46,0.2);
+    display:flex; align-items:center; justify-content:center; flex-shrink:0;
   }
-  .session-icon svg { width: 20px; height: 20px; color: var(--accent); }
-
-  .session-info { flex: 1; min-width: 0; }
+  .session-icon svg { width:20px; height:20px; color:var(--accent); }
+  .session-info { flex:1; min-width:0; }
   .session-name {
-    font-size: 13.5px;
-    font-weight: 700;
-    color: var(--accent);
-    font-family: 'JetBrains Mono', monospace;
-    margin-bottom: 4px;
-    word-break: break-all;
+    font-size:13.5px; font-weight:700; color:var(--accent);
+    font-family:'JetBrains Mono',monospace; margin-bottom:4px; word-break:break-all;
   }
   .session-meta {
-    font-size: 11.5px;
-    color: var(--text-2);
-    display: flex;
-    gap: 14px;
-    flex-wrap: wrap;
+    font-size:11.5px; color:var(--text-2);
+    display:flex; gap:14px; flex-wrap:wrap;
   }
-  .session-meta span { display: inline-flex; align-items: center; gap: 5px; }
-  .session-meta svg { width: 12px; height: 12px; }
+  .session-meta span { display:inline-flex; align-items:center; gap:5px; }
+  .session-meta svg { width:12px; height:12px; }
+  .session-actions { display:flex; gap:6px; flex-shrink:0; }
 
-  .session-actions { display: flex; gap: 6px; flex-shrink: 0; }
   .icon-btn {
-    width: 34px; height: 34px;
-    border: 1px solid var(--border);
-    border-radius: 9px;
-    background: rgba(255,255,255,0.04);
-    color: var(--text-1);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s;
+    width:34px; height:34px; border:1px solid var(--border);
+    border-radius:9px; background:rgba(255,255,255,0.04);
+    color:var(--text-1); cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:all 0.2s;
   }
-  .icon-btn svg { width: 15px; height: 15px; }
-  .icon-btn:hover { background: rgba(255,255,255,0.1); color: var(--text-0); border-color: var(--border-hi); }
-  .icon-btn.danger:hover { background: rgba(255,77,109,0.15); border-color: rgba(255,77,109,0.35); color: #ff8fa8; }
-  .icon-btn.primary:hover { background: rgba(56,189,248,0.15); border-color: rgba(56,189,248,0.35); color: var(--info); }
+  .icon-btn svg { width:15px; height:15px; }
+  .icon-btn:hover { background:rgba(255,255,255,0.1); color:var(--text-0); border-color:var(--border-hi); }
+  .icon-btn.danger:hover { background:rgba(255,77,109,0.15); border-color:rgba(255,77,109,0.35); color:#ff8fa8; }
+  .icon-btn.primary:hover { background:rgba(56,189,248,0.15); border-color:rgba(56,189,248,0.35); color:var(--info); }
 
-  /* ─── Empty state ─── */
-  .empty {
-    padding: 40px 20px;
-    text-align: center;
-    color: var(--text-2);
-    font-size: 13px;
-  }
-  .empty svg {
-    width: 44px; height: 44px;
-    margin-bottom: 12px;
-    opacity: 0.35;
-    color: var(--accent);
-  }
+  .empty { padding:40px 20px; text-align:center; color:var(--text-2); font-size:13px; }
+  .empty svg { width:44px; height:44px; margin-bottom:12px; opacity:0.35; color:var(--accent); }
 
-  /* ─── Toasts ─── */
+  /* Toasts */
   .toasts {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 9999;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    pointer-events: none;
-    max-width: 380px;
+    position:fixed; top:20px; right:20px; z-index:9999;
+    display:flex; flex-direction:column; gap:10px;
+    pointer-events:none; max-width:380px;
   }
   .toast {
-    padding: 13px 16px;
-    border-radius: 11px;
-    background: rgba(22,26,38,0.95);
-    border: 1px solid var(--border-hi);
-    backdrop-filter: blur(20px);
-    font-size: 13.5px;
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 11px;
-    box-shadow: 0 20px 40px -12px rgba(0,0,0,0.6);
-    pointer-events: auto;
-    animation: toastIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    padding:13px 16px; border-radius:11px;
+    background:rgba(22,26,38,0.95);
+    border:1px solid var(--border-hi);
+    backdrop-filter:blur(20px);
+    font-size:13.5px; font-weight:500;
+    display:flex; align-items:center; gap:11px;
+    box-shadow:0 20px 40px -12px rgba(0,0,0,0.6);
+    pointer-events:auto; animation:toastIn 0.35s cubic-bezier(0.16,1,0.3,1);
   }
-  .toast svg { width: 18px; height: 18px; flex-shrink: 0; }
-  .toast.success { border-color: rgba(34,229,165,0.35); }
-  .toast.success svg { color: var(--success); }
-  .toast.error   { border-color: rgba(255,77,109,0.35); }
-  .toast.error   svg { color: var(--danger); }
-  .toast.info    { border-color: rgba(56,189,248,0.35); }
-  .toast.info    svg { color: var(--info); }
+  .toast svg { width:18px; height:18px; flex-shrink:0; }
+  .toast.success { border-color:rgba(34,229,165,0.35); }
+  .toast.success svg { color:var(--success); }
+  .toast.error   { border-color:rgba(255,77,109,0.35); }
+  .toast.error   svg { color:var(--danger); }
+  .toast.info    { border-color:rgba(56,189,248,0.35); }
+  .toast.info    svg { color:var(--info); }
+  @keyframes toastIn { from{opacity:0;transform:translateX(40px)} to{opacity:1;transform:translateX(0)} }
+  .toast.out { animation:toastOut 0.3s ease forwards; }
+  @keyframes toastOut { to{opacity:0;transform:translateX(40px)} }
 
-  @keyframes toastIn {
-    from { opacity: 0; transform: translateX(40px); }
-    to   { opacity: 1; transform: translateX(0); }
-  }
-  .toast.out { animation: toastOut 0.3s ease forwards; }
-  @keyframes toastOut {
-    to { opacity: 0; transform: translateX(40px); }
-  }
-
-  /* ─── Spinner ─── */
   .spin {
-    width: 14px; height: 14px;
-    border: 2px solid rgba(255,255,255,0.15);
-    border-top-color: currentColor;
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-    display: inline-block;
+    width:14px; height:14px;
+    border:2px solid rgba(255,255,255,0.15);
+    border-top-color:currentColor; border-radius:50%;
+    animation:spin 0.7s linear infinite; display:inline-block;
   }
-  @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes spin { to{transform:rotate(360deg)} }
 
-  /* ─── Responsive ─── */
-  @media (max-width: 640px) {
-    .app { padding: 14px; }
-    .topbar { padding: 12px 14px; }
-    .brand-txt h1 { font-size: 14px; }
-    .stat-value { font-size: 24px; }
-    .card-head, .card-body { padding: 14px; }
-    .tab-bar button { padding: 8px 13px; font-size: 12.5px; }
-    .tab-bar button span { display: none; }
-    .tab-bar button svg { width: 17px; height: 17px; }
+  @media (max-width:640px) {
+    .app { padding:14px; }
+    .topbar { padding:12px 14px; }
+    .brand-txt h1 { font-size:14px; }
+    .stat-value { font-size:24px; }
+    .card-head, .card-body { padding:14px; }
+    .tab-bar button span { display:none; }
+    .tab-bar button svg { width:17px; height:17px; }
   }
 </style>
 </head>
@@ -601,7 +395,7 @@
 
 <div class="app">
 
-  <!-- ═══ TOPBAR ═══ -->
+  <!-- TOPBAR -->
   <div class="topbar">
     <div class="brand">
       <div class="brand-logo">
@@ -614,7 +408,6 @@
         <p><span class="dot"></span>OB55 · BD Server · v2.132.8</p>
       </div>
     </div>
-
     <div class="topbar-right">
       <div class="user-pill" id="userPill">
         <div class="user-avatar" id="userAvatar">?</div>
@@ -631,64 +424,54 @@
     </div>
   </div>
 
-  <!-- ═══ STATS ═══ -->
+  <!-- STATS -->
   <div class="stats">
     <div class="stat-card total">
-      <div class="stat-head">
-        <div class="stat-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-            <circle cx="9" cy="7" r="4"/>
-            <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
-            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-          </svg>
-        </div>
+      <div class="stat-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+        </svg>
       </div>
       <div class="stat-value" id="statTotal">0</div>
       <div class="stat-label">Total Accounts</div>
     </div>
-
     <div class="stat-card success">
-      <div class="stat-head">
-        <div class="stat-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-            <polyline points="22 4 12 14.01 9 11.01"/>
-          </svg>
-        </div>
+      <div class="stat-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+          <polyline points="22 4 12 14.01 9 11.01"/>
+        </svg>
       </div>
       <div class="stat-value" id="statSuccess">0</div>
       <div class="stat-label">Success</div>
     </div>
-
     <div class="stat-card failed">
-      <div class="stat-head">
-        <div class="stat-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="10"/>
-            <line x1="15" y1="9" x2="9" y2="15"/>
-            <line x1="9" y1="9" x2="15" y2="15"/>
-          </svg>
-        </div>
+      <div class="stat-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/>
+          <line x1="15" y1="9" x2="9" y2="15"/>
+          <line x1="9" y1="9" x2="15" y2="15"/>
+        </svg>
       </div>
       <div class="stat-value" id="statFail">0</div>
       <div class="stat-label">Failed</div>
     </div>
-
     <div class="stat-card status">
-      <div class="stat-head">
-        <div class="stat-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-          </svg>
-        </div>
+      <div class="stat-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
       </div>
-      <div class="stat-value"><span class="status-badge idle" id="runStatus"><span class="led"></span>IDLE</span></div>
+      <div class="stat-value">
+        <span class="status-badge idle" id="runStatus"><span class="led"></span>IDLE</span>
+      </div>
       <div class="stat-label">Generator Status</div>
     </div>
   </div>
 
-  <!-- ═══ TABS ═══ -->
+  <!-- TABS -->
   <div class="tab-bar">
     <button class="active" data-tab="dashboard">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -699,23 +482,29 @@
       </svg>
       <span>Dashboard</span>
     </button>
+    <button data-tab="export">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="7 10 12 15 17 10"/>
+        <line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      <span>Export</span>
+    </button>
     <button data-tab="json">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <polyline points="16 18 22 12 16 6"/>
         <polyline points="8 6 2 12 8 18"/>
       </svg>
-      <span>JSON Data</span>
+      <span>JSON</span>
     </button>
     <button data-tab="logs">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
         <polyline points="14 2 14 8 20 8"/>
-        <line x1="16" y1="13" x2="8" y2="13"/>
-        <line x1="16" y1="17" x2="8" y2="17"/>
       </svg>
-      <span>Live Logs</span>
+      <span>Logs</span>
     </button>
-    <button data-tab="sessions" id="tabSessionsBtn">
+    <button data-tab="sessions" id="tabSessionsBtn" style="display:none;">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
       </svg>
@@ -723,57 +512,40 @@
     </button>
   </div>
 
-  <!-- ═══ TAB: DASHBOARD ═══ -->
+  <!-- TAB: DASHBOARD -->
   <div class="tab-panel active" data-panel="dashboard">
     <div class="grid-2">
-
-      <!-- LEFT: Controls -->
       <div>
         <div class="card">
           <div class="card-head">
             <div class="card-title">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="12" cy="12" r="3"/>
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
               </svg>
               Generation Settings
             </div>
           </div>
           <div class="card-body">
             <div class="field">
-              <label for="nickname">Nickname Prefix <span id="ownerOnly1" style="color:var(--owner);font-size:10px;margin-left:5px;">OWNER ONLY</span></label>
+              <label>Nickname Prefix (Owner only)</label>
               <input type="text" id="nickname" value="MAHIR" maxlength="20">
-              <div class="hint">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <circle cx="12" cy="12" r="10"/>
-                  <line x1="12" y1="16" x2="12" y2="12"/>
-                  <line x1="12" y1="8" x2="12.01" y2="8"/>
-                </svg>
-                Accounts will be named like: <code style="color:var(--accent);font-family:'JetBrains Mono',monospace;">MAHIR⁰¹²³</code>
-              </div>
             </div>
-
             <div class="field">
-              <label for="bio">In-Game Bio <span id="ownerOnly2" style="color:var(--owner);font-size:10px;margin-left:5px;">OWNER ONLY</span></label>
+              <label>In-Game Bio (Owner only)</label>
               <input type="text" id="bio" value="[C][B]WEB : MAHIR.XO.JE [FFD700]TG : MAHIR0208" maxlength="300">
             </div>
-
             <div class="field">
-              <label for="workers">Concurrent Workers (1–100)</label>
+              <label>Concurrent Workers (1–100)</label>
               <input type="number" id="workers" value="20" min="1" max="100">
             </div>
-
             <div style="display:flex;gap:8px;margin-top:20px;flex-wrap:wrap;">
               <button class="btn btn-primary" id="btnStart" onclick="startGen()" style="flex:1;justify-content:center;padding:13px;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <polygon points="5 3 19 12 5 21 5 3"/>
-                </svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
                 Start Generation
               </button>
               <button class="btn btn-danger" id="btnStop" onclick="stopGen()" style="flex:1;justify-content:center;padding:13px;display:none;">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="6" y="6" width="12" height="12" rx="1"/>
-                </svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="1"/></svg>
                 Stop & Save
               </button>
             </div>
@@ -792,7 +564,7 @@
             </div>
           </div>
           <div class="card-body">
-            <div class="field" style="margin-bottom:10px;">
+            <div class="field" style="margin-bottom:12px;">
               <label>Session File</label>
               <input type="text" id="sessionFile" disabled value="—">
             </div>
@@ -804,27 +576,19 @@
                 </svg>
                 Copy JSON
               </button>
-              <button class="btn" onclick="downloadCurrent()">
+              <button class="btn" onclick="document.querySelector('.tab-bar button[data-tab=export]').click()">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
                   <polyline points="7 10 12 15 17 10"/>
                   <line x1="12" y1="15" x2="12" y2="3"/>
                 </svg>
-                Download
-              </button>
-              <button class="btn" onclick="refreshJson()">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="23 4 23 10 17 10"/>
-                  <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
-                </svg>
-                Refresh
+                Export Options
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- RIGHT: Live log -->
       <div>
         <div class="card" style="height:100%;display:flex;flex-direction:column;">
           <div class="card-head">
@@ -843,11 +607,135 @@
           </div>
         </div>
       </div>
-
     </div>
   </div>
 
-  <!-- ═══ TAB: JSON ═══ -->
+  <!-- TAB: EXPORT (★ NEW) -->
+  <div class="tab-panel" data-panel="export">
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="7 10 12 15 17 10"/>
+            <line x1="12" y1="15" x2="12" y2="3"/>
+          </svg>
+          Export Format
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="format-grid" id="formatGrid">
+          <div class="format-card" data-fmt="txt">
+            <div class="check">✓</div>
+            <div class="fmt-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+              </svg>
+            </div>
+            <div class="fmt-name">TXT (UID:PASSWORD)</div>
+            <div class="fmt-desc">uid:password</div>
+          </div>
+
+          <div class="format-card" data-fmt="json_dict">
+            <div class="check">✓</div>
+            <div class="fmt-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+            </div>
+            <div class="fmt-name">JSON (Dictionary)</div>
+            <div class="fmt-desc">{"uid": "password"}</div>
+          </div>
+
+          <div class="format-card" data-fmt="json_array">
+            <div class="check">✓</div>
+            <div class="fmt-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="16 18 22 12 16 6"/>
+                <polyline points="8 6 2 12 8 18"/>
+              </svg>
+            </div>
+            <div class="fmt-name">JSON (Array)</div>
+            <div class="fmt-desc">[{"uid": "..."}]</div>
+          </div>
+
+          <div class="format-card" data-fmt="custom_txt">
+            <div class="check">✓</div>
+            <div class="fmt-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 20h9"/>
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+              </svg>
+            </div>
+            <div class="fmt-name">Custom TXT</div>
+            <div class="fmt-desc">Your own template</div>
+          </div>
+
+          <div class="format-card" data-fmt="custom_json">
+            <div class="check">✓</div>
+            <div class="fmt-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 20h9"/>
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
+              </svg>
+            </div>
+            <div class="fmt-name">Custom JSON</div>
+            <div class="fmt-desc">Your own schema</div>
+          </div>
+
+          <div class="format-card" data-fmt="zip">
+            <div class="check">✓</div>
+            <div class="fmt-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+            </div>
+            <div class="fmt-name">All Formats (ZIP)</div>
+            <div class="fmt-desc">Everything in one ZIP</div>
+          </div>
+        </div>
+
+        <div class="custom-box" id="customBox">
+          <div class="field" style="margin-bottom:0;">
+            <label>Custom Template</label>
+            <textarea id="customTemplate" rows="3" placeholder="Example: {uid}:{password}"></textarea>
+            <div class="hint">
+              Available placeholders:
+              <code>{uid}</code> <code>{password}</code> <code>{account_id}</code>
+              <code>{name}</code> <code>{jwt_token}</code> <code>{bio}</code>
+              <code>{region}</code> <code>{created_at}</code>
+            </div>
+          </div>
+        </div>
+
+        <div class="actions" style="margin-bottom:16px;">
+          <button class="btn btn-primary" onclick="doExport(true)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Download
+          </button>
+          <button class="btn" onclick="doExport(false)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+            </svg>
+            Copy to Clipboard
+          </button>
+        </div>
+
+        <div class="code-view" id="exportPreview">// Select a format and click Download / Copy</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: JSON -->
   <div class="tab-panel" data-panel="json">
     <div class="card">
       <div class="card-head">
@@ -856,25 +744,15 @@
             <polyline points="16 18 22 12 16 6"/>
             <polyline points="8 6 2 12 8 18"/>
           </svg>
-          JSON Data Viewer
+          JSON Data
         </div>
-        <div class="actions">
-          <button class="btn" onclick="copyJson()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
-            </svg>
-            Copy
-          </button>
-          <button class="btn btn-primary" onclick="downloadCurrent()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="7 10 12 15 17 10"/>
-              <line x1="12" y1="15" x2="12" y2="3"/>
-            </svg>
-            Download JSON
-          </button>
-        </div>
+        <button class="btn" onclick="refreshJson()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="23 4 23 10 17 10"/>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+          </svg>
+          Refresh
+        </button>
       </div>
       <div class="card-body">
         <div class="code-view" id="jsonView"></div>
@@ -882,7 +760,7 @@
     </div>
   </div>
 
-  <!-- ═══ TAB: LOGS ═══ -->
+  <!-- TAB: LOGS -->
   <div class="tab-panel" data-panel="logs">
     <div class="card">
       <div class="card-head">
@@ -890,21 +768,17 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
             <polyline points="14 2 14 8 20 8"/>
-            <line x1="16" y1="13" x2="8" y2="13"/>
-            <line x1="16" y1="17" x2="8" y2="17"/>
           </svg>
-          Full Log History
+          Log History
         </div>
       </div>
       <div class="card-body">
-        <div class="log-view" id="logView2" style="max-height:600px;">
-          <div class="log-line info"><span class="t">--:--:--</span><span class="m">No logs yet</span></div>
-        </div>
+        <div class="log-view" id="logView2" style="max-height:600px;"></div>
       </div>
     </div>
   </div>
 
-  <!-- ═══ TAB: SESSIONS ═══ -->
+  <!-- TAB: SESSIONS -->
   <div class="tab-panel" data-panel="sessions">
     <div class="card">
       <div class="card-head">
@@ -923,14 +797,7 @@
         </button>
       </div>
       <div class="card-body">
-        <div class="sessions-list" id="ownerFiles">
-          <div class="empty">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
-            </svg>
-            <div>Owner only — nothing to show</div>
-          </div>
-        </div>
+        <div class="sessions-list" id="ownerFiles"></div>
       </div>
     </div>
   </div>
@@ -938,13 +805,12 @@
 </div>
 
 <script>
-let me = null;
-let isRunning = false;
-let pollTimer = null;
-let currentJsonData = [];
-let currentJsonFile = '';
+let me = null, isRunning = false, pollTimer = null;
+let currentJsonData = [], currentJsonFile = '';
+let selectedFormat = 'txt';
+let exportSource = 'current'; // 'current' or 'file:xxxx.json'
 
-/* ─── Toast system ─── */
+/* ─── Toast ─── */
 function toast(msg, type='info', ms=3000) {
   const box = document.getElementById('toasts');
   const icons = {
@@ -970,27 +836,48 @@ document.querySelectorAll('.tab-bar button').forEach(btn => {
   });
 });
 
+/* ─── Format selection ─── */
+document.querySelectorAll('.format-card').forEach(card => {
+  card.addEventListener('click', () => {
+    document.querySelectorAll('.format-card').forEach(c => c.classList.remove('selected'));
+    card.classList.add('selected');
+    selectedFormat = card.dataset.fmt;
+
+    // show/hide custom box
+    const cb = document.getElementById('customBox');
+    if (selectedFormat === 'custom_txt' || selectedFormat === 'custom_json') {
+      cb.classList.add('show');
+      const ta = document.getElementById('customTemplate');
+      if (!ta.value) {
+        ta.value = selectedFormat === 'custom_txt'
+          ? '{uid}:{password}'
+          : '{"uid":"{uid}","pass":"{password}"}';
+      }
+    } else {
+      cb.classList.remove('show');
+    }
+  });
+});
+
+// default select TXT
+document.querySelector('.format-card[data-fmt="txt"]').classList.add('selected');
+
 /* ─── Init ─── */
 async function init() {
   const res = await fetch('/api/me');
   if (!res.ok) { window.location.href = '/'; return; }
   me = await res.json();
 
-  // User pill
   const pill = document.getElementById('userPill');
   const av = document.getElementById('userAvatar');
   pill.className = 'user-pill ' + me.role;
   av.textContent = (me.username[0] || '?').toUpperCase();
   document.getElementById('userName').textContent = me.username;
 
-  // Lock user fields
   if (me.role !== 'owner') {
     document.getElementById('nickname').disabled = true;
     document.getElementById('bio').disabled = true;
-    document.getElementById('ownerOnly1').style.display = 'none';
-    document.getElementById('ownerOnly2').style.display = 'none';
   } else {
-    // Show owner-only tab
     document.getElementById('tabSessionsBtn').style.display = 'inline-flex';
   }
 
@@ -1005,36 +892,31 @@ async function tick() {
     const res = await fetch('/api/stats');
     if (!res.ok) return;
     const d = await res.json();
-
     isRunning = d.running;
     document.getElementById('statTotal').textContent   = d.total;
     document.getElementById('statSuccess').textContent = d.success;
     document.getElementById('statFail').textContent    = d.fail;
     document.getElementById('sessionFile').value       = d.session_file || '—';
 
-    // Status badge
-    const s1 = document.getElementById('runStatus');
-    const s2 = document.getElementById('runStatus2');
     const cls = d.running ? 'status-badge running' : 'status-badge idle';
     const txt = d.running ? 'RUNNING' : 'IDLE';
-    s1.className = cls; s1.innerHTML = `<span class="led"></span>${txt}`;
-    s2.className = cls; s2.innerHTML = `<span class="led"></span>${txt}`;
+    ['runStatus','runStatus2'].forEach(id => {
+      const el = document.getElementById(id);
+      el.className = cls; el.innerHTML = `<span class="led"></span>${txt}`;
+    });
 
     document.getElementById('btnStart').style.display = d.running ? 'none' : 'inline-flex';
     document.getElementById('btnStop').style.display  = d.running ? 'inline-flex' : 'none';
 
-    // Logs
     const html = d.logs.map(l =>
       `<div class="log-line ${l.level}"><span class="t">${l.t}</span><span class="m">${esc(l.msg)}</span></div>`
-    ).join('') || '<div class="log-line info"><span class="t">--:--:--</span><span class="m">No activity yet</span></div>';
+    ).join('') || '<div class="log-line info"><span class="t">--:--:--</span><span class="m">No activity</span></div>';
 
-    const lv = document.getElementById('logView');
-    lv.innerHTML = html;
-    lv.scrollTop = lv.scrollHeight;
-
-    const lv2 = document.getElementById('logView2');
-    lv2.innerHTML = html;
-    lv2.scrollTop = lv2.scrollHeight;
+    ['logView','logView2'].forEach(id => {
+      const el = document.getElementById(id);
+      el.innerHTML = html;
+      el.scrollTop = el.scrollHeight;
+    });
   } catch (e) {}
 }
 
@@ -1048,8 +930,7 @@ async function startGen() {
   btn.disabled = true;
   try {
     const res = await fetch('/api/start', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
+      method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({
         nickname: document.getElementById('nickname').value.trim(),
         bio:      document.getElementById('bio').value.trim(),
@@ -1057,7 +938,7 @@ async function startGen() {
       })
     });
     const d = await res.json();
-    if (!d.ok) toast(d.error || 'Failed to start', 'error');
+    if (!d.ok) toast(d.error || 'Failed', 'error');
     else { toast(`Started ${d.workers} workers`, 'success'); refreshJson(); }
   } catch (e) { toast('Network error', 'error'); }
   btn.disabled = false;
@@ -1069,7 +950,7 @@ async function stopGen() {
   btn.disabled = true;
   try {
     await fetch('/api/stop', {method:'POST'});
-    toast('Generation stopped & saved', 'info');
+    toast('Stopped & saved', 'info');
     await refreshJson();
   } catch (e) { toast('Network error', 'error'); }
   btn.disabled = false;
@@ -1083,43 +964,65 @@ async function refreshJson() {
     if (!d.ok) return;
     currentJsonData = d.accounts || [];
     currentJsonFile = d.file || '';
-
     const jv = document.getElementById('jsonView');
-    if (!currentJsonData.length) {
-      jv.textContent = '// No accounts generated yet\n// File: ' + (currentJsonFile || '—');
-    } else {
-      jv.textContent = JSON.stringify(currentJsonData, null, 2);
-    }
+    jv.textContent = currentJsonData.length
+      ? JSON.stringify(currentJsonData, null, 2)
+      : '// No accounts yet\n// File: ' + (currentJsonFile || '—');
   } catch (e) {}
 }
 
 function copyJson() {
-  if (!currentJsonData.length) return toast('No data to copy', 'error');
+  if (!currentJsonData.length) return toast('No data', 'error');
   const text = JSON.stringify(currentJsonData, null, 2);
   navigator.clipboard.writeText(text)
     .then(() => toast(`Copied ${currentJsonData.length} accounts`, 'success'))
-    .catch(() => {
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      ta.remove();
-      toast(`Copied ${currentJsonData.length} accounts`, 'success');
-    });
+    .catch(() => toast('Copy failed', 'error'));
 }
 
-function downloadCurrent() {
-  if (!currentJsonFile) return toast('No session file yet', 'error');
-  window.location.href = '/api/download?file=' + encodeURIComponent(currentJsonFile);
-  toast('Download started', 'info');
+/* ─── EXPORT ─── */
+async function doExport(download) {
+  const params = new URLSearchParams({
+    format: selectedFormat,
+    source: exportSource,
+    download: download ? '1' : '0',
+  });
+
+  if (selectedFormat === 'custom_txt' || selectedFormat === 'custom_json') {
+    params.append('template', document.getElementById('customTemplate').value);
+  }
+
+  if (download) {
+    window.location.href = '/api/export?' + params.toString();
+    toast('Download started', 'info');
+    return;
+  }
+
+  // copy to clipboard
+  try {
+    const res = await fetch('/api/export?' + params.toString());
+    const d = await res.json();
+    if (!d.ok) return toast(d.error || 'Export failed', 'error');
+
+    if (d.is_binary) {
+      toast('ZIP cannot be copied — use Download', 'error');
+      return;
+    }
+
+    // show preview
+    document.getElementById('exportPreview').textContent = d.content;
+
+    await navigator.clipboard.writeText(d.content);
+    toast(`Copied ${d.count} accounts (${d.format})`, 'success');
+  } catch (e) {
+    toast('Export failed', 'error');
+  }
 }
 
 /* ─── Owner ─── */
 async function loadOwnerFiles() {
   const box = document.getElementById('ownerFiles');
   if (!me || me.role !== 'owner') {
-    box.innerHTML = '<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><div>Owner only</div></div>';
+    box.innerHTML = '<div class="empty">Owner only</div>';
     return;
   }
   box.innerHTML = '<div class="empty"><div class="spin" style="color:var(--accent);width:24px;height:24px;border-width:3px;"></div></div>';
@@ -1127,10 +1030,9 @@ async function loadOwnerFiles() {
   try {
     const res = await fetch('/api/owner/list');
     const d = await res.json();
-    if (!d.ok) { box.innerHTML = '<div class="empty">Error loading sessions</div>'; return; }
-
+    if (!d.ok) { box.innerHTML = '<div class="empty">Error</div>'; return; }
     if (!d.files.length) {
-      box.innerHTML = '<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><div>No sessions generated yet</div></div>';
+      box.innerHTML = '<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg><div>No sessions yet</div></div>';
       return;
     }
 
@@ -1145,39 +1047,20 @@ async function loadOwnerFiles() {
         <div class="session-info">
           <div class="session-name">${f.filename}</div>
           <div class="session-meta">
-            <span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-              ${f.count} accounts
-            </span>
-            <span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg>
-              ${(f.size/1024).toFixed(1)} KB
-            </span>
-            <span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-              ${f.modified.slice(0,19).replace('T',' ')}
-            </span>
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> ${f.count} accounts</span>
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg> ${(f.size/1024).toFixed(1)} KB</span>
+            <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> ${f.modified.slice(0,19).replace('T',' ')}</span>
           </div>
         </div>
         <div class="session-actions">
           <button class="icon-btn primary" onclick="viewOwnerFile('${f.filename}')" title="View">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-              <circle cx="12" cy="12" r="3"/>
-            </svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           </button>
-          <button class="icon-btn" onclick="downloadOwnerFile('${f.filename}')" title="Download">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-              <polyline points="7 10 12 15 17 10"/>
-              <line x1="12" y1="15" x2="12" y2="3"/>
-            </svg>
+          <button class="icon-btn" onclick="exportOwnerFile('${f.filename}')" title="Export">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           </button>
           <button class="icon-btn danger" onclick="deleteOwnerFile('${f.filename}')" title="Delete">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="3 6 5 6 21 6"/>
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-            </svg>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
           </button>
         </div>
       </div>
@@ -1190,7 +1073,7 @@ async function loadOwnerFiles() {
 async function viewOwnerFile(fname) {
   const res = await fetch('/api/owner/view?file=' + encodeURIComponent(fname));
   const d = await res.json();
-  if (!d.ok) return toast('Failed to load', 'error');
+  if (!d.ok) return toast('Failed', 'error');
   currentJsonData = d.accounts;
   currentJsonFile = d.file;
   document.getElementById('jsonView').textContent = JSON.stringify(d.accounts, null, 2);
@@ -1198,19 +1081,19 @@ async function viewOwnerFile(fname) {
   toast(`Loaded ${d.count} accounts`, 'success');
 }
 
-function downloadOwnerFile(fname) {
-  window.location.href = '/api/download?file=' + encodeURIComponent(fname);
-  toast('Download started', 'info');
+function exportOwnerFile(fname) {
+  exportSource = 'file:' + fname;
+  document.querySelector('.tab-bar button[data-tab="export"]').click();
+  toast('Export source: ' + fname, 'info');
 }
 
 async function deleteOwnerFile(fname) {
-  if (!confirm(`Delete ${fname}?\nThis cannot be undone.`)) return;
+  if (!confirm(`Delete ${fname}?`)) return;
   await fetch('/api/owner/delete', {
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
+    method:'POST', headers:{'Content-Type':'application/json'},
     body: JSON.stringify({file: fname})
   });
-  toast('File deleted', 'info');
+  toast('Deleted', 'info');
   loadOwnerFiles();
 }
 

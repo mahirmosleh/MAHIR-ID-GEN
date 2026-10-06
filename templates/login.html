@@ -6,12 +6,11 @@
 <title>Sign In · MAHIR ID Generator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg-0: #08090f;
     --bg-1: #0f1119;
-    --bg-2: #161a26;
     --card: rgba(22, 26, 38, 0.7);
     --border: rgba(255, 255, 255, 0.08);
     --border-hi: rgba(255, 255, 255, 0.16);
@@ -19,7 +18,6 @@
     --text-1: #a8b0c2;
     --text-2: #6b7385;
     --accent: #ffb02e;
-    --accent-hi: #ffd166;
     --accent-glow: rgba(255, 176, 46, 0.4);
     --danger: #ff4d6d;
     --success: #22e5a5;
@@ -81,6 +79,7 @@
     background-size: 40px 40px;
     z-index: 0;
     mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
+    -webkit-mask-image: radial-gradient(ellipse at center, black 30%, transparent 70%);
   }
 
   /* ─── Card ─── */
@@ -247,6 +246,25 @@
   .field input:focus + .input-icon,
   .field input:focus ~ .input-icon { color: var(--accent); }
 
+  /* ─── Toggle password visibility ─── */
+  .toggle-pw {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: var(--text-2);
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+  }
+  .toggle-pw:hover { color: var(--accent); }
+  .toggle-pw svg { width: 17px; height: 17px; }
+
   /* ─── Button ─── */
   .btn-submit {
     width: 100%;
@@ -311,11 +329,18 @@
     font-size: 11.5px;
     color: var(--text-2);
     font-family: 'JetBrains Mono', monospace;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
   }
+  .footer .sep { opacity: 0.4; }
 
   @media (max-width: 480px) {
     .card { padding: 30px 22px; }
     .brand h1 { font-size: 19px; }
+    .brand-logo { width: 56px; height: 56px; }
+    .brand-logo svg { width: 28px; height: 28px; }
   }
 </style>
 </head>
@@ -380,6 +405,12 @@
               <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
             </svg>
           </span>
+          <button type="button" class="toggle-pw" id="togglePw" title="Show password">
+            <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -395,7 +426,13 @@
 
     <div id="alertBox"></div>
 
-    <div class="footer">v2.132.8 · OB55 · BD Only</div>
+    <div class="footer">
+      <span>v2.132.8</span>
+      <span class="sep">·</span>
+      <span>OB55</span>
+      <span class="sep">·</span>
+      <span>BD Only</span>
+    </div>
   </div>
 </div>
 
@@ -403,6 +440,7 @@
   let role = 'user';
   const tabs = document.querySelectorAll('.tab');
 
+  /* ─── Role tabs ─── */
   tabs.forEach(t => t.addEventListener('click', () => {
     tabs.forEach(x => x.classList.remove('active'));
     t.classList.add('active');
@@ -410,6 +448,21 @@
     document.getElementById('alertBox').innerHTML = '';
   }));
 
+  /* ─── Password toggle ─── */
+  const toggleBtn = document.getElementById('togglePw');
+  const pwInput = document.getElementById('password');
+  const eyeIcon = document.getElementById('eyeIcon');
+  let pwVisible = false;
+
+  toggleBtn.addEventListener('click', () => {
+    pwVisible = !pwVisible;
+    pwInput.type = pwVisible ? 'text' : 'password';
+    eyeIcon.innerHTML = pwVisible
+      ? '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/>'
+      : '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+  });
+
+  /* ─── Login submit ─── */
   document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('btn');
@@ -426,7 +479,7 @@
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
           username: document.getElementById('username').value.trim(),
-          password: document.getElementById('password').value.trim(),
+          password: pwInput.value.trim(),
           role,
         })
       });
@@ -468,6 +521,11 @@
           Network error. Please try again.
         </div>`;
     }
+  });
+
+  /* ─── Auto-focus username ─── */
+  window.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('username').focus();
   });
 </script>
 </body>
