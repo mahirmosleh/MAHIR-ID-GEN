@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 # ======================================================================
 #   MAHIR ID GENERATOR — BD Only + Persistent Sessions + Owner Panel
+#   + Extended Export Formats + Auto-Scroll Copy + Download Fix
 # ======================================================================
 
 import asyncio
@@ -17,6 +18,10 @@ import uuid
 import ssl
 import string
 import glob
+import csv
+import io
+import base64
+import zipfile
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
 from datetime import datetime
@@ -65,11 +70,9 @@ HTTP_CONCURRENCY = 30
 CONNECTOR_LIMIT          = 30
 CONNECTOR_LIMIT_PER_HOST = 30
 
-# ---- Session store (in-memory for login cookies) ----
 sessions = {}
 SESSION_COOKIE = "mahir_sid"
 
-# ---- Generation state ----
 accounts_list   = []
 success_count   = 0
 fail_count      = 0
@@ -81,13 +84,12 @@ GENERATION_RUNNING = False
 STOP_EVENT         = None
 WORKER_TASKS       = []
 
-# ---- Per-run values ----
 CURRENT_RUN = {
-    "owner": None,          # username of who started it
-    "role": None,           # "user" or "owner"
+    "owner": None,
+    "role": None,
     "nickname": DEFAULT_NICKNAME,
     "bio": DEFAULT_BIO,
-    "file": None,           # path to JSON
+    "file": None,
 }
 
 log_buffer = []
@@ -134,7 +136,6 @@ def make_session(username, role):
 # BD-ONLY IP ROTATOR
 # ======================================================================
 class IPRotator:
-    # Only Bangladeshi IP ranges
     BD_CIDRS = [
         "27.147.128.0/17", "37.111.192.0/19", "49.0.32.0/20", "59.152.96.0/20",
         "114.130.0.0/17", "115.127.0.0/17", "119.30.32.0/20", "123.49.0.0/18",
@@ -500,7 +501,7 @@ async def change_bio(jwt_token, bio_text):
 
 
 # ======================================================================
-# PERSISTENCE — JSON files stay in data/
+# PERSISTENCE
 # ======================================================================
 def new_session_filename():
     rand = ''.join(random.choices(string.ascii_uppercase + string.digits, k=6))
@@ -512,7 +513,6 @@ def session_file_path(filename):
 
 
 async def save_current_json():
-    """Persist accounts_list to CURRENT_RUN['file']."""
     fname = CURRENT_RUN.get("file")
     if not fname:
         return
@@ -528,6 +528,8 @@ async def save_current_json():
 
 
 def load_json_file(filename):
+    if not filename:
+        return None
     path = session_file_path(filename)
     if not os.path.exists(path):
         return None
@@ -539,7 +541,6 @@ def load_json_file(filename):
 
 
 def list_all_json_files():
-    """Return all session JSON files sorted newest first."""
     files = glob.glob(os.path.join(DATA_DIR, "MAHIR_ID_GEN_*.json"))
     result = []
     for fp in files:
@@ -675,6 +676,247 @@ async def worker(thread_id):
 
 
 # ======================================================================
+# EXPORT FORMATTERS
+# ======================================================================
+def render_template(template, account):
+    out = template
+    for key, val in account.items():
+        out = out.replace('{' + key + '}', str(val))
+    return out
+
+
+def fmt_txt(accounts, template=None):
+    if template:
+        return "\n".join(render_template(template, a) for a in accounts)
+    return "\n".join(f"{a['uid']}:{a['password']}" for a in accounts)
+
+
+def fmt_txt_full(accounts, template=None):
+    return "\n".join(f"{a['name']}:{a['uid']}:{a['password']}" for a in accounts)
+
+
+def fmt_csv(accounts, template=None):
+    if not accounts:
+        return "uid,password,name,account_id,region"
+    out = io.StringIO()
+    writer = csv.DictWriter(out, fieldnames=[
+        'uid', 'password', 'name', 'account_id', 'region',
+        'jwt_token', 'bio', 'bio_updated', 'created_at'
+    ])
+    writer.writeheader()
+    for a in accounts:
+        writer.writerow({k: a.get(k, '') for k in writer.fieldnames})
+    return out.getvalue()
+
+
+def fmt_yaml(accounts, template=None):
+    lines = []
+    for a in accounts:
+        lines.append(f"- uid: \"{a['uid']}\"")
+        lines.append(f"  password: \"{a['password']}\"")
+        lines.append(f"  name: \"{a['name']}\"")
+        lines.append(f"  account_id: \"{a['account_id']}\"")
+        lines.append(f"  region: \"{a.get('region', 'BD')}\"")
+    return "\n".join(lines)
+
+
+def fmt_xml(accounts, template=None):
+    def esc(s):
+        return (str(s).replace('&','&amp;').replace('<','&lt;').replace('>','&gt;')
+                .replace('"','&quot;').replace("'", '&apos;'))
+    lines = ['<?xml version="1.0" encoding="UTF-8"?>', '<accounts>']
+    for a in accounts:
+        lines.append('  <account>')
+        for k in ['uid','password','name','account_id','region','jwt_token','created_at']:
+            lines.append(f'    <{k}>{esc(a.get(k,""))}</{k}>')
+        lines.append('  </account>')
+    lines.append('</accounts>')
+    return "\n".join(lines)
+
+
+def fmt_sql(accounts, template=None):
+    lines = [
+        "-- MAHIR ID Export",
+        "CREATE TABLE IF NOT EXISTS accounts (",
+        "  uid TEXT, password TEXT, name TEXT, account_id TEXT,",
+        "  region TEXT, jwt_token TEXT, created_at TEXT",
+        ");", ""
+    ]
+    for a in accounts:
+        lines.append(
+            f"INSERT INTO accounts (uid, password, name, account_id, region, jwt_token, created_at) "
+            f"VALUES ('{a['uid']}', '{a['password']}', '{a['name']}', "
+            f"'{a['account_id']}', '{a.get('region','BD')}', "
+            f"'{a.get('jwt_token','')}', '{a.get('created_at','')}');"
+        )
+    return "\n".join(lines)
+
+
+def fmt_env(accounts, template=None):
+    lines = ["# MAHIR ID Export"]
+    for i, a in enumerate(accounts, 1):
+        lines.append(f"ACCOUNT_{i}_UID={a['uid']}")
+        lines.append(f"ACCOUNT_{i}_PASSWORD={a['password']}")
+        lines.append(f"ACCOUNT_{i}_NAME={a['name']}")
+        lines.append(f"ACCOUNT_{i}_ID={a['account_id']}")
+    return "\n".join(lines)
+
+
+def fmt_ndjson(accounts, template=None):
+    return "\n".join(json.dumps(a, ensure_ascii=False) for a in accounts)
+
+
+def fmt_markdown(accounts, template=None):
+    lines = ["| # | UID | Password | Name | Account ID | Region |",
+             "|---|-----|----------|------|------------|--------|"]
+    for i, a in enumerate(accounts, 1):
+        lines.append(
+            f"| {i} | `{a['uid']}` | `{a['password']}` | {a['name']} | "
+            f"`{a['account_id']}` | {a.get('region','BD')} |"
+        )
+    return "\n".join(lines)
+
+
+def fmt_html(accounts, template=None):
+    rows = "\n".join(
+        f"<tr><td>{i}</td><td><code>{a['uid']}</code></td>"
+        f"<td><code>{a['password']}</code></td><td>{a['name']}</td>"
+        f"<td><code>{a['account_id']}</code></td><td>{a.get('region','BD')}</td></tr>"
+        for i, a in enumerate(accounts, 1)
+    )
+    return f"""<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>MAHIR ID Export</title>
+<style>
+body{{font-family:Arial,sans-serif;background:#0a0a0a;color:#eee;padding:20px}}
+table{{width:100%;border-collapse:collapse;margin-top:20px}}
+th,td{{padding:10px;border:1px solid #333;text-align:left}}
+th{{background:#1a1a1a;color:#ffb02e}}
+code{{background:#1a1a1a;padding:2px 6px;border-radius:4px;color:#22e5a5}}
+</style></head><body>
+<h1>MAHIR ID Generator — Export</h1>
+<p>Total: {len(accounts)} accounts</p>
+<table><thead><tr>
+<th>#</th><th>UID</th><th>Password</th><th>Name</th><th>Account ID</th><th>Region</th>
+</tr></thead><tbody>
+{rows}
+</tbody></table></body></html>"""
+
+
+def fmt_base64_json(accounts, template=None):
+    raw = json.dumps(accounts, ensure_ascii=False).encode('utf-8')
+    return base64.b64encode(raw).decode('ascii')
+
+
+def fmt_json_dict(accounts, template=None):
+    return json.dumps({a['uid']: a['password'] for a in accounts}, indent=2, ensure_ascii=False)
+
+
+def fmt_json_array(accounts, template=None):
+    return json.dumps(accounts, indent=2, ensure_ascii=False)
+
+
+FORMAT_MAP = {
+    'txt':          (fmt_txt,           'txt',    'text/plain'),
+    'txt_full':     (fmt_txt_full,      'txt',    'text/plain'),
+    'csv':          (fmt_csv,           'csv',    'text/csv'),
+    'yaml':         (fmt_yaml,          'yaml',   'text/yaml'),
+    'xml':          (fmt_xml,           'xml',    'application/xml'),
+    'sql':          (fmt_sql,           'sql',    'application/sql'),
+    'env':          (fmt_env,           'env',    'text/plain'),
+    'ndjson':       (fmt_ndjson,        'ndjson', 'application/x-ndjson'),
+    'markdown':     (fmt_markdown,      'md',     'text/markdown'),
+    'html':         (fmt_html,          'html',   'text/html'),
+    'base64_json':  (fmt_base64_json,   'b64.txt','text/plain'),
+    'json_dict':    (fmt_json_dict,     'json',   'application/json'),
+    'json_array':   (fmt_json_array,    'json',   'application/json'),
+    'json_full':    (fmt_json_array,    'json',   'application/json'),
+    'custom_txt':   (fmt_txt,           'txt',    'text/plain'),
+    'custom_json':  (fmt_json_array,    'json',   'application/json'),
+    'zip':          (None,              'zip',    'application/zip'),
+}
+
+
+async def handle_export(request):
+    sess = get_current_session(request)
+    if not sess:
+        return web.json_response({"ok": False, "error": "Not logged in"}, status=401)
+
+    fmt      = request.query.get('format', 'txt')
+    source   = request.query.get('source', 'current')
+    download = request.query.get('download', '0') == '1'
+    template = request.query.get('template', '')
+
+    # Load data
+    if source.startswith('file:'):
+        fname = source[5:]
+        if not fname.startswith("MAHIR_ID_GEN_") or not fname.endswith(".json"):
+            return web.json_response({"ok": False, "error": "Invalid file"}, status=400)
+        if sess["role"] != "owner" and fname != CURRENT_RUN.get("file"):
+            return web.json_response({"ok": False, "error": "Forbidden"}, status=403)
+        data = load_json_file(fname)
+        if data is None:
+            return web.json_response({"ok": False, "error": "File not found"}, status=404)
+    else:
+        fname = CURRENT_RUN.get("file")
+        data = load_json_file(fname) if fname else accounts_list
+        if data is None:
+            data = accounts_list
+
+    if fmt not in FORMAT_MAP:
+        return web.json_response({"ok": False, "error": f"Unknown format: {fmt}"}, status=400)
+
+    # ZIP special case
+    if fmt == 'zip':
+        if not download:
+            return web.json_response({"ok": False, "error": "ZIP must be downloaded", "is_binary": True})
+        buf = io.BytesIO()
+        with zipfile.ZipFile(buf, 'w', zipfile.ZIP_DEFLATED) as zf:
+            for name, (func, ext, _) in FORMAT_MAP.items():
+                if func is None:
+                    continue
+                try:
+                    zf.writestr(f"accounts.{ext}", func(data))
+                except Exception:
+                    continue
+            zf.writestr("accounts_raw.json", json.dumps(data, indent=2, ensure_ascii=False))
+            zf.writestr("README.txt",
+                f"MAHIR ID Export\nGenerated: {datetime.now().isoformat()}\nTotal: {len(data)}\n")
+        buf.seek(0)
+        fname_out = f"MAHIR_EXPORT_{datetime.now().strftime('%Y%m%d_%H%M%S')}.zip"
+        return web.Response(
+            body=buf.read(),
+            content_type='application/zip',
+            headers={"Content-Disposition": f'attachment; filename="{fname_out}"'}
+        )
+
+    func, ext, mime = FORMAT_MAP[fmt]
+
+    # Custom template
+    if fmt == 'custom_txt' and template:
+        content = "\n".join(render_template(template, a) for a in data) if data else ''
+    elif fmt == 'custom_json' and template:
+        content = "\n".join(render_template(template, a) for a in data) if data else '[]'
+    else:
+        content = func(data)
+
+    if download:
+        fname_out = f"MAHIR_EXPORT_{datetime.now().strftime('%Y%m%d_%H%M%S')}.{ext}"
+        return web.Response(
+            text=content,
+            content_type=mime,
+            headers={"Content-Disposition": f'attachment; filename="{fname_out}"'}
+        )
+
+    return web.json_response({
+        "ok": True,
+        "format": fmt,
+        "count": len(data),
+        "content": content,
+        "is_binary": False,
+    })
+
+
+# ======================================================================
 # WEB HANDLERS
 # ======================================================================
 async def handle_index(request):
@@ -754,7 +996,6 @@ async def handle_start(request):
     except Exception:
         body = {}
 
-    # Role-based fields
     if sess["role"] == "owner":
         nickname = str(body.get("nickname", "")).strip()[:20] or DEFAULT_NICKNAME
         bio      = str(body.get("bio", "")).strip() or DEFAULT_BIO
@@ -786,7 +1027,6 @@ async def handle_start(request):
     for i in range(workers):
         WORKER_TASKS.append(asyncio.create_task(worker(i)))
 
-    # write empty file immediately so download works even before first account
     await save_current_json()
 
     log_msg(
@@ -837,12 +1077,10 @@ async def handle_stats(request):
 
 
 async def handle_current_json(request):
-    """Return current run's accounts as JSON (works even while running)."""
     sess = get_current_session(request)
     if not sess:
         return web.json_response({"ok": False, "error": "Not logged in"}, status=401)
 
-    # Always read from file so refresh persists
     fname = CURRENT_RUN.get("file")
     data = load_json_file(fname) if fname else accounts_list
     if data is None:
@@ -866,12 +1104,10 @@ async def handle_download(request):
 
     path = session_file_path(fname)
 
-    # Owner-only for arbitrary files; user only for their own
     if sess["role"] != "owner" and fname != CURRENT_RUN.get("file"):
         return web.Response(status=403, text="Forbidden")
 
     if not os.path.exists(path):
-        # create from memory if it's the current one
         if fname == CURRENT_RUN.get("file"):
             await save_current_json()
         else:
@@ -883,7 +1119,6 @@ async def handle_download(request):
     )
 
 
-# ---- OWNER ONLY ----
 async def handle_owner_list(request):
     sess = get_current_session(request)
     if not sess or sess["role"] != "owner":
@@ -960,7 +1195,7 @@ async def async_main():
     app.router.add_get ("/api/stats",     handle_stats)
     app.router.add_get ("/api/current",   handle_current_json)
     app.router.add_get ("/api/download",  handle_download)
-    # owner
+    app.router.add_get ("/api/export",    handle_export)     # ← EXPORT ROUTE
     app.router.add_get ("/api/owner/list",   handle_owner_list)
     app.router.add_get ("/api/owner/view",   handle_owner_view)
     app.router.add_post("/api/owner/delete", handle_owner_delete)
